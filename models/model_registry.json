@@ -1,0 +1,246 @@
+{
+  "random_forest": [
+    {
+      "name": "random_forest",
+      "version": 1,
+      "model_type": "sklearn",
+      "metrics": {
+        "rmse": 43.94401378385794,
+        "mae": 36.8748717948718,
+        "r2": -0.04127538321504276
+      },
+      "created_at": "2025-07-27T20:00:45.681612",
+      "file_path": "/home/oai/share/aqi_project/models/random_forest_v1.pkl"
+    },
+    {
+      "name": "random_forest",
+      "version": 2,
+      "model_type": "sklearn",
+      "metrics": {
+        "rmse": 18.56327251478934,
+        "mae": 17.786458333333332,
+        "r2": -4.882135188477951
+      },
+      "created_at": "2025-07-27T21:47:37.999238",
+      "file_path": "/Users/samieahmad/Downloads/aqi_project/models/random_forest_v2.pkl"
+    },
+    {
+      "name": "random_forest",
+      "version": 3,
+      "model_type": "sklearn",
+      "metrics": {
+        "rmse": 18.56327251478934,
+        "mae": 17.786458333333332,
+        "r2": -4.882135188477951
+      },
+      "created_at": "2025-07-27T21:48:50.537372",
+      "file_path": "/Users/samieahmad/Downloads/aqi_project/models/random_forest_v3.pkl"
+    },
+    {
+      "name": "random_forest",
+      "version": 4,
+      "model_type": "sklearn",
+      "metrics": {
+        "rmse": 18.307323699592647,
+        "mae": 17.52354166666667,
+        "r2": -4.929815278289716
+      },
+      "created_at": "2025-07-27T22:00:02.451601",
+      "file_path": "/Users/samieahmad/Downloads/aqi_project/models/random_forest_v4.pkl"
+    },
+    {
+      "name": "random_forest",
+      "version": 5,
+      "model_type": "sklearn",
+      "metrics": {
+        "rmse": 21.093930900458865,
+        "mae": 19.352291666666666,
+        "r2": -12.770519075315327
+      },
+      "created_at": "2025-08-03T13:43:04.862361",
+      "file_path": "/Users/samieahmad/Downloads/aqi_project/models/random_forest_v5.pkl"
+    },
+    {
+      "name": "random_forest",
+      "version": 6,
+      "model_type": "sklearn",
+      "metrics": {
+        "rmse": 8.260012831658718,
+        "mae": 4.963020833333333,
+        "r2": 0.7957888024568186
+      },
+      "created_at": "2025-08-03T13:45:01.878310",
+      "file_path": "/Users/samieahmad/Downloads/aqi_project/models/random_forest_v6.pkl",
+      "feature_columns": null
+    },
+    {
+      "name": "random_forest",
+      "version": 7,
+      "model_type": "sklearn",
+      "metrics": {
+        "rmse": 6.486090730107287,
+        "mae": 4.69765306122449,
+        "r2": 0.8730036681540322
+      },
+      "created_at": "2025-08-03T18:07:37.977580",
+      "file_path": "/Users/samieahmad/Downloads/aqi_project/models/random_forest_v7.pkl",
+      "feature_columns": null
+    },
+    {
+      "name": "random_forest",
+      "version": 8,
+      "model_type": "sklearn",
+      "metrics": {
+        "rmse": 6.486090730107287,
+        "mae": 4.69765306122449,
+        "r2": 0.8730036681540322
+      },
+      "created_at": "2025-08-03T18:38:02.472565",
+      "file_path": "/Users/samieahmad/Downloads/aqi_project/models/random_forest_v8.pkl",
+      "feature_columns": null
+    },
+    {
+      "name": "random_forest",
+      "version": 9,
+      "model_type": "sklearn",
+      "metrics": {
+        "rmse": 6.026724327729699,
+        "mae": 4.241632653061225,
+        "r2": 0.8939378471039804
+      },
+      "created_at": "2025-08-03T19:25:20.271344",
+      "file_path": "/Users/samieahmad/Downloads/aqi_project/models/random_forest_v9.pkl",
+      "feature_columns": null
+    },
+    {
+      "name": "random_forest",
+      "version": 10,
+      "model_type": "sklearn",
+      "metrics": {
+        "rmse": 6.026724327729699,
+        "mae": 4.241632653061225,
+        "r2": 0.8939378471039804
+      },
+      "created_at": "2025-08-03T19:26:08.284650",
+      "file_path": "/Users/samieahmad/Downloads/aqi_project/models/random_forest_v10.pkl",
+      "feature_columns": null
+    },
+    {
+      "name": "random_forest",
+      "version": 11,
+      "model_type": "sklearn",
+      "metrics": {
+        "rmse": 6.026724327729699,
+        "mae": 4.241632653061225,
+        "r2": 0.8939378471039804
+      },
+      "created_at": "2025-08-03T19:26:29.993860",
+      "file_path": "/Users/samieahmad/Downloads/aqi_project/models/random_forest_v11.pkl",
+      "feature_columns": null
+    },
+    {
+      "name": "random_forest",
+      "version": 12,
+      "model_type": "sklearn",
+      "metrics": {
+        "rmse": 6.026724327729699,
+        "mae": 4.241632653061225,
+        "r2": 0.8939378471039804
+      },
+      "created_at": "2025-08-03T19:26:44.555203",
+      "file_path": "/Users/samieahmad/Downloads/aqi_project/models/random_forest_v12.pkl",
+      "feature_columns": null
+    },
+    {
+      "name": "random_forest",
+      "version": 13,
+      "model_type": "sklearn",
+      "metrics": {
+        "rmse": 6.026724327729699,
+        "mae": 4.241632653061225,
+        "r2": 0.8939378471039804
+      },
+      "created_at": "2025-08-03T19:27:47.511020",
+      "file_path": "/Users/samieahmad/Downloads/aqi_project/models/random_forest_v13.pkl",
+      "feature_columns": null
+    },
+    {
+      "name": "random_forest",
+      "version": 14,
+      "model_type": "sklearn",
+      "metrics": {
+        "rmse": 6.026724327729699,
+        "mae": 4.241632653061225,
+        "r2": 0.8939378471039804
+      },
+      "created_at": "2025-08-03T19:28:10.536656",
+      "file_path": "/Users/samieahmad/Downloads/aqi_project/models/random_forest_v14.pkl",
+      "feature_columns": null
+    },
+    {
+      "name": "random_forest",
+      "version": 15,
+      "model_type": "sklearn",
+      "metrics": {
+        "rmse": 6.026724327729699,
+        "mae": 4.241632653061225,
+        "r2": 0.8939378471039804
+      },
+      "created_at": "2025-08-03T19:28:44.109863",
+      "file_path": "/Users/samieahmad/Downloads/aqi_project/models/random_forest_v15.pkl",
+      "feature_columns": null
+    },
+    {
+      "name": "random_forest",
+      "version": 16,
+      "model_type": "sklearn",
+      "metrics": {
+        "rmse": 6.026724327729699,
+        "mae": 4.241632653061225,
+        "r2": 0.8939378471039804
+      },
+      "created_at": "2025-08-03T19:30:08.793394",
+      "file_path": "/Users/samieahmad/Downloads/aqi_project/models/random_forest_v16.pkl",
+      "feature_columns": null
+    },
+    {
+      "name": "random_forest",
+      "version": 17,
+      "model_type": "sklearn",
+      "metrics": {
+        "rmse": 6.026724327729699,
+        "mae": 4.241632653061225,
+        "r2": 0.8939378471039804
+      },
+      "created_at": "2025-08-03T19:36:15.537311",
+      "file_path": "/Users/samieahmad/Downloads/aqi_project/models/random_forest_v17.pkl",
+      "feature_columns": null
+    },
+    {
+      "name": "random_forest",
+      "version": 18,
+      "model_type": "sklearn",
+      "metrics": {
+        "rmse": 6.026724327729699,
+        "mae": 4.241632653061225,
+        "r2": 0.8939378471039804
+      },
+      "created_at": "2025-08-03T19:41:39.531731",
+      "file_path": "/Users/samieahmad/Downloads/aqi_project/models/random_forest_v18.pkl",
+      "feature_columns": null
+    },
+    {
+      "name": "random_forest",
+      "version": 19,
+      "model_type": "sklearn",
+      "metrics": {
+        "rmse": 6.026724327729699,
+        "mae": 4.241632653061225,
+        "r2": 0.8939378471039804
+      },
+      "created_at": "2025-08-03T19:47:55.782139",
+      "file_path": "/Users/samieahmad/Downloads/aqi_project/models/random_forest_v19.pkl",
+      "feature_columns": null
+    }
+  ]
+}
