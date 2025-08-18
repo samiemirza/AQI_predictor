@@ -8,8 +8,23 @@ from setuptools import setup, find_packages
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
-with open("requirements.txt", "r", encoding="utf-8") as fh:
-    requirements = [line.strip() for line in fh if line.strip() and not line.startswith("#")]
+requirements = []
+_req_path = "requirements.txt"
+try:
+    with open(_req_path, "r", encoding="utf-8") as fh:
+        requirements = [line.strip() for line in fh if line.strip() and not line.startswith("#")]
+except FileNotFoundError:
+    # Fallback for build environments that do not include requirements.txt in sdist context
+    # Keep runtime minimal for packaging
+    requirements = [
+        "pandas>=1.5.0",
+        "numpy>=1.23.0",
+        "scikit-learn>=1.3.0",
+        "requests>=2.31.0",
+        "joblib>=1.2.0",
+        "python-dotenv>=1.0.0",
+        "pyarrow>=10.0.0",
+    ]
 
 setup(
     name="aqi-predictor",

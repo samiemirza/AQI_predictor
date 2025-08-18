@@ -4,8 +4,8 @@ FROM python:3.11-slim
 # Set working directory
 WORKDIR /app
 
-# Copy project files
-COPY aqi_project /app/aqi_project
+# Copy project files (copy entire repo so it works whether code is nested or at root)
+COPY . /app
 COPY requirements.txt /app/requirements.txt
 
 # Install dependencies
@@ -18,4 +18,4 @@ EXPOSE 8501
 ENV PYTHONUNBUFFERED=1
 
 # Default command: run the Streamlit dashboard
-CMD ["streamlit", "run", "aqi_project/src/dashboard.py", "--server.port", "8501", "--server.address", "0.0.0.0"]
+CMD ["streamlit", "run", "src/dashboard.py", "--server.port", "8501", "--server.address", "0.0.0.0"]

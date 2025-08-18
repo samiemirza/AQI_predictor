@@ -3,7 +3,8 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-COPY aqi_project /app/aqi_project
+# Copy entire repo context to ensure consistent paths in CI
+COPY . /app
 COPY requirements.txt /app/requirements.txt
 
 RUN pip install --no-cache-dir -r requirements.txt
@@ -12,7 +13,7 @@ EXPOSE 5001
 
 ENV PYTHONUNBUFFERED=1
 
-WORKDIR /app/aqi_project
+WORKDIR /app
 
 CMD ["python", "simple_api_server.py"]
 

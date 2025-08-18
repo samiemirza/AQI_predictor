@@ -8,6 +8,4 @@ python-dotenv>=1.0.0
 pyarrow>=10.0.0
 schedule>=1.2.0
 # Avoid installing heavy UI/server frameworks in CI unit tests
-# Note: shap can be heavy on newer Python; keep optional with pin if available
-shap==0.41.0; python_version<'3.12'
 
