@@ -28,8 +28,8 @@ const StatsContainer = styled.div`
 `;
 
 const getAQIColor = (aqi) => {
-  if (aqi <= 50) return '#00e400';
-  if (aqi <= 100) return '#ffff00';
+  if (aqi <= 50) return '#66bb6a';
+  if (aqi <= 100) return '#ffa500';
   if (aqi <= 150) return '#ff7e00';
   if (aqi <= 200) return '#ff0000';
   if (aqi <= 300) return '#8f3f97';
@@ -37,8 +37,8 @@ const getAQIColor = (aqi) => {
 };
 
 const getAQICategory = (aqi) => {
-  if (aqi <= 50) return { text: 'Good', color: 'success' };
-  if (aqi <= 100) return { text: 'Moderate', color: 'warning' };
+  if (aqi <= 50) return { text: 'Good', color: '#66bb6a' };
+  if (aqi <= 100) return { text: 'Moderate', color: '#ffa500' };
   if (aqi <= 150) return { text: 'Unhealthy for Sensitive Groups', color: 'warning' };
   if (aqi <= 200) return { text: 'Unhealthy', color: 'error' };
   if (aqi <= 300) return { text: 'Very Unhealthy', color: 'error' };

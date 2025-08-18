@@ -54,15 +54,17 @@ def main():
                     sys.stderr = old_stderr
                     print(json.dumps({'error': 'No data collected'}), file=sys.stderr)
                     sys.exit(1)
-                
-                # Train models if needed
-                result = run_training_pipeline()
-                if not result:
-                    sys.stdout = old_stdout
-                    sys.stderr = old_stderr
-                    print(json.dumps({'error': 'Training failed'}), file=sys.stderr)
-                    sys.exit(1)
-                
+
+                # Use saved v23 model if available; otherwise train as fallback
+                model_path = Path(__file__).parent / 'models' / 'random_forest_v23.pkl'
+                if not model_path.exists():
+                    result = run_training_pipeline()
+                    if not result:
+                        sys.stdout = old_stdout
+                        sys.stderr = old_stderr
+                        print(json.dumps({'error': 'Training failed'}), file=sys.stderr)
+                        sys.exit(1)
+
                 # Generate predictions
                 pred_df = run_inference_pipeline(lat=args.lat, lon=args.lng)
                 if pred_df is None or pred_df.empty:
@@ -70,7 +72,7 @@ def main():
                     sys.stderr = old_stderr
                     print(json.dumps({'error': 'Prediction failed'}), file=sys.stderr)
                     sys.exit(1)
-                    
+
             finally:
                 # Restore stdout and stderr
                 sys.stdout = old_stdout

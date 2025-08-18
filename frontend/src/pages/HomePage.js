@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Row, Col, Button, Input, message, Alert } from 'antd';
-import { SearchOutlined, EnvironmentOutlined, ThunderboltOutlined } from '@ant-design/icons';
+import { Row, Col, Input, message, Alert } from 'antd';
+import { SearchOutlined, EnvironmentOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 import WorldMap from '../components/WorldMap';
 import PredictionWidget from '../components/PredictionWidget';
 import CurrentAQIWidget from '../components/CurrentAQIWidget';
-import { fetchPredictions, fetchCurrentAQI, generatePredictions } from '../services/api';
+import { fetchPredictions, fetchCurrentAQI } from '../services/api';
 
 const { Search } = Input;
 
@@ -97,24 +97,18 @@ const HomePage = () => {
     return cityCoords[normalizedCity] || null;
   };
 
-  const handleGeneratePredictions = async () => {
-    if (!selectedLocation) {
-      message.warning('Please select a location first');
-      return;
-    }
-
-    setPredictionLoading(true);
+  const pollPredictions = useCallback(async () => {
+    if (!selectedLocation) return;
     try {
-      const predData = await generatePredictions(selectedLocation.lat, selectedLocation.lng);
+      setPredictionLoading(true);
+      const predData = await fetchPredictions(selectedLocation.lat, selectedLocation.lng);
       setPredictions(predData);
-      message.success('✅ Predictions generated successfully!');
     } catch (error) {
-      console.error('Prediction error:', error);
-      message.error('❌ Failed to generate predictions. Please try again.');
+      console.error('Prediction polling error:', error);
     } finally {
       setPredictionLoading(false);
     }
-  };
+  }, [selectedLocation]);
 
   const fetchCurrentAQIData = useCallback(async () => {
     if (!selectedLocation) return;
@@ -131,6 +125,16 @@ const HomePage = () => {
   useEffect(() => {
     if (selectedLocation) {
       fetchCurrentAQIData();
+      // initial predictions fetch
+      pollPredictions();
+
+      // set up 5-minute polling
+      const intervalId = setInterval(() => {
+        pollPredictions();
+        fetchCurrentAQIData();
+      }, 5 * 60 * 1000);
+
+      return () => clearInterval(intervalId);
     }
   }, [selectedLocation, fetchCurrentAQIData]);
 
@@ -171,21 +175,12 @@ const HomePage = () => {
         <WorldMap onLocationSelect={handleLocationSelect} selectedLocation={selectedLocation} />
       </MapContainer>
 
-      {/* Action Button */}
+      {/* Auto-refresh active indicator */}
       {selectedLocation && (
         <ActionButtonsContainer>
           <Row justify="center">
-            <Col span={12}>
-              <Button
-                type="primary"
-                icon={<ThunderboltOutlined />}
-                size="large"
-                block
-                loading={predictionLoading}
-                onClick={handleGeneratePredictions}
-              >
-                🔮 Generate Predictions
-              </Button>
+            <Col span={12} style={{ textAlign: 'center' }}>
+              <span>Auto-refreshing predictions every 5 minutes...</span>
             </Col>
           </Row>
         </ActionButtonsContainer>

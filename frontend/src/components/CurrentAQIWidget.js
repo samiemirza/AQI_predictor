@@ -27,7 +27,7 @@ const AQICategory = styled.div`
 `;
 
 const getAQIColor = (aqi) => {
-  if (aqi <= 50) return { color: '#00e400', category: 'Good', status: 'success' };
+  if (aqi <= 50) return { color: '#66bb6a', category: 'Good', status: 'success' };
   if (aqi <= 100) return { color: '#ffa500', category: 'Moderate', status: 'warning' };
   if (aqi <= 150) return { color: '#ff7e00', category: 'Unhealthy for Sensitive Groups', status: 'warning' };
   if (aqi <= 200) return { color: '#ff0000', category: 'Unhealthy', status: 'error' };
@@ -36,7 +36,7 @@ const getAQIColor = (aqi) => {
 };
 
 const getAQIIcon = (aqi) => {
-  if (aqi <= 50) return <CheckCircleOutlined style={{ color: '#00e400' }} />;
+  if (aqi <= 50) return <CheckCircleOutlined style={{ color: '#66bb6a' }} />;
   if (aqi <= 100) return <CloudOutlined style={{ color: '#ffa500' }} />;
   return <WarningOutlined style={{ color: '#ff0000' }} />;
 };
@@ -69,7 +69,7 @@ const CurrentAQIWidget = ({ data, location }) => {
             fontWeight: 'bold'
           }}
           suffix={
-            <Tag color={aqiInfo.status} style={{ fontSize: '14px', marginLeft: '8px' }}>
+            <Tag color={aqiInfo.color} style={{ fontSize: '14px', marginLeft: '8px' }}>
               {aqiInfo.category}
             </Tag>
           }

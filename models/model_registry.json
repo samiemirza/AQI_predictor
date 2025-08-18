@@ -267,6 +267,32 @@
       "created_at": "2025-08-18T08:52:46.093702",
       "file_path": "/Users/samieahmad/Downloads/aqi_project/models/random_forest_v21.pkl",
       "feature_columns": null
+    },
+    {
+      "name": "random_forest",
+      "version": 22,
+      "model_type": "sklearn",
+      "metrics": {
+        "rmse": 3.391220938254362,
+        "mae": 2.3790410958904107,
+        "r2": 0.9661608242476045
+      },
+      "created_at": "2025-08-18T09:34:59.331284",
+      "file_path": "/Users/samieahmad/Downloads/aqi_project/models/random_forest_v22.pkl",
+      "feature_columns": null
+    },
+    {
+      "name": "random_forest",
+      "version": 23,
+      "model_type": "sklearn",
+      "metrics": {
+        "rmse": 3.391220938254362,
+        "mae": 2.3790410958904107,
+        "r2": 0.9661608242476045
+      },
+      "created_at": "2025-08-18T09:48:44.648961",
+      "file_path": "/Users/samieahmad/Downloads/aqi_project/models/random_forest_v23.pkl",
+      "feature_columns": null
     }
   ]
 }

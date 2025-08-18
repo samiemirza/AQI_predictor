@@ -1,0 +1,36 @@
+name: Python CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install build tooling and test deps
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install build pytest
+          # Install a minimal dependency set for CI to keep runs fast
+          if [ -f requirements-ci.txt ]; then pip install -r requirements-ci.txt; else pip install -r requirements.txt; fi
+
+      - name: Build package
+        run: |
+          python -m build
+
+      - name: Run tests
+        run: |
+          pytest -q
+

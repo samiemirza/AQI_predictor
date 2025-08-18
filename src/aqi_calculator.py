@@ -71,12 +71,12 @@ AQI_BREAKPOINTS = {
 
 # AQI categories and colors
 AQI_CATEGORIES = {
-    (0, 50): {"category": "Good", "color": "green", "health_impact": "Air quality is considered satisfactory"},
-    (51, 100): {"category": "Moderate", "color": "yellow", "health_impact": "Some concern for sensitive groups"},
-    (101, 150): {"category": "Unhealthy for Sensitive Groups", "color": "orange", "health_impact": "May cause health effects in sensitive groups"},
-    (151, 200): {"category": "Unhealthy", "color": "red", "health_impact": "May cause health effects in everyone"},
-    (201, 300): {"category": "Very Unhealthy", "color": "purple", "health_impact": "May cause serious health effects"},
-    (301, 500): {"category": "Hazardous", "color": "maroon", "health_impact": "May cause serious health effects"},
+    (0, 50): {"category": "Good", "color": "#00e400", "health_impact": "Air quality is considered satisfactory"},
+    (51, 100): {"category": "Moderate", "color": "#ff7e00", "health_impact": "Some concern for sensitive groups"},
+    (101, 150): {"category": "Unhealthy for Sensitive Groups", "color": "#ff7e00", "health_impact": "May cause health effects in sensitive groups"},
+    (151, 200): {"category": "Unhealthy", "color": "#ff0000", "health_impact": "May cause health effects in everyone"},
+    (201, 300): {"category": "Very Unhealthy", "color": "#8f3f97", "health_impact": "May cause serious health effects"},
+    (301, 500): {"category": "Hazardous", "color": "#7e0023", "health_impact": "May cause serious health effects"},
 }
 
 

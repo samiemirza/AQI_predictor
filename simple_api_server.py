@@ -236,6 +236,43 @@ def get_current_aqi():
         print(f"❌ Error in current AQI endpoint: {e}")
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/predictions', methods=['GET'])
+def get_predictions():
+    """Return predictions for a location using the latest saved model only (no retraining)."""
+    try:
+        lat = float(request.args.get('lat'))
+        lng = float(request.args.get('lng'))
+
+        # Import pipeline for inference only (as package import)
+        sys.path.insert(0, str(Path(__file__).parent))
+        from src.pipeline import run_inference_pipeline  # type: ignore
+
+        pred_df = run_inference_pipeline(lat, lng)
+        if pred_df is None or pred_df.empty:
+            return jsonify({'error': 'No predictions available'}), 404
+
+        formatted_predictions = []
+        for i, (_, row) in enumerate(pred_df.iterrows()):
+            ts = row['timestamp']
+            try:
+                ts_iso = ts.isoformat()
+            except Exception:
+                ts_iso = str(ts)
+
+            formatted_predictions.append({
+                'timestamp': ts_iso,
+                'predicted_aqi': float(row['predicted_aqi']),
+                'aqi_category': row.get('aqi_category', 'Unknown'),
+                'aqi_color': row.get('aqi_color', 'gray'),
+                'hour_ahead': i + 1
+            })
+
+        return jsonify(formatted_predictions)
+
+    except Exception as e:
+        print(f"❌ Error getting predictions: {e}")
+        return jsonify({'error': str(e)}), 500
+
 def generate_realistic_predictions():
     """Generate realistic predictions based on typical AQI patterns"""
     import datetime
