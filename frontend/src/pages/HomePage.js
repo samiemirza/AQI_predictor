@@ -136,7 +136,7 @@ const HomePage = () => {
 
       return () => clearInterval(intervalId);
     }
-  }, [selectedLocation, fetchCurrentAQIData]);
+  }, [selectedLocation, fetchCurrentAQIData, pollPredictions]);
 
   return (
     <PageContainer>
@@ -180,7 +180,7 @@ const HomePage = () => {
         <ActionButtonsContainer>
           <Row justify="center">
             <Col span={12} style={{ textAlign: 'center' }}>
-              <span>Auto-refreshing predictions every 5 minutes...</span>
+              <span>Auto-refreshing predictions every 5 minutes... {predictionLoading ? 'Updating…' : ''}</span>
             </Col>
           </Row>
         </ActionButtonsContainer>
