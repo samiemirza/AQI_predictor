@@ -26,15 +26,22 @@ from dataclasses import dataclass, asdict
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple, Type
+import os
 
 import joblib
 
 from . import config
 
-try:
-    import tensorflow as tf  # type: ignore
-except ImportError:
-    tf = None  # type: ignore
+
+def _get_tensorflow():
+    """Return tensorflow only when explicitly enabled and importable."""
+    if os.getenv("AQI_ENABLE_TENSORFLOW", "0") != "1":
+        return None
+    try:
+        import tensorflow as tf  # type: ignore
+        return tf
+    except Exception:
+        return None
 
 
 @dataclass
@@ -91,6 +98,7 @@ class ModelRegistry:
         model_name: str,
         model_type: str,
         metrics: Dict[str, float],
+        feature_columns: Optional[list] = None,
     ) -> ModelMetadata:
         """Persist a trained model and register its metadata.
 
@@ -119,6 +127,7 @@ class ModelRegistry:
         if model_type == "sklearn":
             joblib.dump(model, file_path)
         elif model_type == "keras":
+            tf = _get_tensorflow()
             if tf is None:
                 raise RuntimeError(
                     "TensorFlow is not installed; cannot save Keras models."
@@ -134,6 +143,7 @@ class ModelRegistry:
             metrics=metrics,
             created_at=datetime.utcnow().isoformat(),
             file_path=str(file_path),
+            feature_columns=feature_columns,
         )
 
         # Update registry
@@ -187,6 +197,7 @@ class ModelRegistry:
         if metadata.model_type == "sklearn":
             model = joblib.load(file_path)
         elif metadata.model_type == "keras":
+            tf = _get_tensorflow()
             if tf is None:
                 raise RuntimeError(
                     "TensorFlow is not installed; cannot load Keras models."

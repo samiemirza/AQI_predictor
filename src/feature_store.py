@@ -83,8 +83,11 @@ class FeatureStore:
         if append and self.store_path.exists():
             existing = self.load()
             combined = pd.concat([existing, df], ignore_index=True)
-            # Drop duplicates based on timestamp
-            combined = combined.drop_duplicates(subset=["timestamp"]).sort_values(
+            # Drop duplicates by location-aware key when available.
+            dedupe_subset = ["timestamp"]
+            if "lat" in combined.columns and "lon" in combined.columns:
+                dedupe_subset = ["timestamp", "lat", "lon"]
+            combined = combined.drop_duplicates(subset=dedupe_subset).sort_values(
                 by="timestamp"
             ).reset_index(drop=True)
         else:

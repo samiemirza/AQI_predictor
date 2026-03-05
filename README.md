@@ -59,6 +59,12 @@ aqi_project/
 
 ## Getting started
 
+## Deploy React UI + API (Cloud)
+
+For a production-style deployment where React is the public UI and Flask runs in the cloud, see:
+
+- `DEPLOY_REACT_CLOUD.md`
+
 ### Quick Start (Recommended)
 
 For the fastest setup, use our quick start script:

@@ -20,6 +20,7 @@ load_dotenv()
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 from src.pipeline import run_feature_pipeline, run_training_pipeline, run_inference_pipeline
+from src.model_registry import ModelRegistry
 from src.config import get_api_key
 
 def main():
@@ -55,11 +56,20 @@ def main():
                     print(json.dumps({'error': 'No data collected'}), file=sys.stderr)
                     sys.exit(1)
 
-                # Use saved v23 model if available; otherwise train as fallback
-                model_path = Path(__file__).parent / 'models' / 'random_forest_v23.pkl'
-                if not model_path.exists():
-                    result = run_training_pipeline()
-                    if not result:
+                # Ensure multi-horizon models (24/48/72) exist; if not, train them now
+                registry = ModelRegistry()
+                def has_horizon_models() -> bool:
+                    for h in [24, 48, 72]:
+                        for name in [f"random_forest_h{h}", f"ridge_regression_h{h}", f"mlp_regressor_h{h}", f"keras_mlp_h{h}"]:
+                            if registry.get_latest_model(name) is not None:
+                                break
+                        else:
+                            return False
+                    return True
+
+                if not has_horizon_models():
+                    result_any = run_training_pipeline()
+                    if not result_any:
                         sys.stdout = old_stdout
                         sys.stderr = old_stderr
                         print(json.dumps({'error': 'Training failed'}), file=sys.stderr)
@@ -78,7 +88,7 @@ def main():
                 sys.stdout = old_stdout
                 sys.stderr = old_stderr
         
-        # Convert predictions to JSON format
+        # Convert predictions to JSON format (expect 3 rows: 24/48/72h)
         predictions = []
         for _, row in pred_df.iterrows():
             predictions.append({
@@ -86,7 +96,7 @@ def main():
                 'predicted_aqi': float(row['predicted_aqi']),
                 'aqi_category': row.get('aqi_category', 'Unknown'),
                 'aqi_color': row.get('aqi_color', 'gray'),
-                'hour_ahead': len(predictions) + 1
+                'hour_ahead': int(row.get('horizon_hours', 0))
             })
         
         # Output JSON result

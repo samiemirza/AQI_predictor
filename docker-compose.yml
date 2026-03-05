@@ -1,15 +1,28 @@
-version: '3.8'
 services:
   api:
     build:
       context: .
       dockerfile: Dockerfile.api
     image: aqi-predictor-api:latest
-    working_dir: /app/aqi_project
+    working_dir: /app
     environment:
       - OPENWEATHER_API_KEY=${OPENWEATHER_API_KEY}
+      - AQI_ENABLE_TENSORFLOW=0
     ports:
       - "5001:5001"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        - REACT_APP_API_URL=/api
+    image: aqi-predictor-frontend:latest
+    ports:
+      - "80:80"
+    depends_on:
+      - api
     restart: unless-stopped
 
   dashboard:
@@ -24,4 +37,5 @@ services:
     depends_on:
       - api
     restart: unless-stopped
-
+    profiles:
+      - dashboard

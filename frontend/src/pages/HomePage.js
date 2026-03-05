@@ -175,16 +175,7 @@ const HomePage = () => {
         <WorldMap onLocationSelect={handleLocationSelect} selectedLocation={selectedLocation} />
       </MapContainer>
 
-      {/* Auto-refresh active indicator */}
-      {selectedLocation && (
-        <ActionButtonsContainer>
-          <Row justify="center">
-            <Col span={12} style={{ textAlign: 'center' }}>
-              <span>Auto-refreshing predictions every 5 minutes... {predictionLoading ? 'Updating…' : ''}</span>
-            </Col>
-          </Row>
-        </ActionButtonsContainer>
-      )}
+      {/* Auto-refresh indicator removed per request */}
 
       {/* Widgets */}
       {selectedLocation && (

@@ -18,6 +18,14 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)  # Enable CORS for React frontend
 
+@app.route('/', methods=['GET'])
+def index():
+    """Basic index route to avoid confusing 404s on API root."""
+    return jsonify({
+        'message': 'AQI Prediction API server is running',
+        'health': '/api/health'
+    })
+
 @app.route('/api/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""
@@ -243,16 +251,16 @@ def get_predictions():
         lat = float(request.args.get('lat'))
         lng = float(request.args.get('lng'))
 
-        # Import pipeline for inference only (as package import)
+        # Import pipeline and run inference only; do NOT retrain or update features here
         sys.path.insert(0, str(Path(__file__).parent))
         from src.pipeline import run_inference_pipeline  # type: ignore
 
-        pred_df = run_inference_pipeline(lat, lng)
+        pred_df = run_inference_pipeline(lat, lng, prefer_direct_forecast=True)
         if pred_df is None or pred_df.empty:
             return jsonify({'error': 'No predictions available'}), 404
 
         formatted_predictions = []
-        for i, (_, row) in enumerate(pred_df.iterrows()):
+        for _, row in pred_df.iterrows():
             ts = row['timestamp']
             try:
                 ts_iso = ts.isoformat()
@@ -264,7 +272,7 @@ def get_predictions():
                 'predicted_aqi': float(row['predicted_aqi']),
                 'aqi_category': row.get('aqi_category', 'Unknown'),
                 'aqi_color': row.get('aqi_color', 'gray'),
-                'hour_ahead': i + 1
+                'hour_ahead': int(row.get('horizon_hours', 0))
             })
 
         return jsonify(formatted_predictions)

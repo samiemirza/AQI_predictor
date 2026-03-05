@@ -19,8 +19,8 @@ sys.path.insert(0, str(Path(__file__).parent / "src"))
 # Now import the modules
 try:
     from pipeline import run_feature_pipeline, run_training_pipeline, run_inference_pipeline
-    from data_fetcher import fetch_air_pollution_data
-    from config import OPENWEATHER_API_KEY
+    from data_fetcher import fetch_air_pollution_history
+    from config import get_api_key
 except ImportError as e:
     print(f"❌ Import error: {e}")
     print("Make sure you're running this from the project root directory")
@@ -44,8 +44,11 @@ def get_current_aqi():
         lat = float(request.args.get('lat'))
         lng = float(request.args.get('lng'))
         
-        # Fetch current air pollution data
-        data = fetch_air_pollution_data(lat, lng, days_back=1)
+        # Fetch current air pollution data (last 24h history)
+        from datetime import datetime, timedelta, timezone
+        end_time = datetime.now(timezone.utc)
+        start_time = end_time - timedelta(days=1)
+        data = fetch_air_pollution_history(lat, lng, start_time, end_time)
         
         if data.empty:
             return jsonify({'error': 'No data available for this location'}), 404
@@ -98,7 +101,7 @@ def generate_predictions():
         print("🤖 Training models...")
         run_training_pipeline()
         
-        # Step 3: Generate predictions
+        # Step 3: Generate predictions (returns DataFrame with exactly 3 horizons: 24/48/72h)
         print("🔮 Generating predictions...")
         predictions = run_inference_pipeline(lat, lng)
         
@@ -107,20 +110,16 @@ def generate_predictions():
         
         # Format predictions for frontend
         formatted_predictions = []
-        for i, (timestamp, aqi) in enumerate(predictions):
-            from aqi_calculator import get_aqi_category, get_aqi_color
-            
-            category = get_aqi_category(aqi)
-            color = get_aqi_color(aqi)
-            
+        from aqi_calculator import get_aqi_category
+        for _, row in predictions.iterrows():
+            category_info = get_aqi_category(row['predicted_aqi'])
             formatted_predictions.append({
-                'timestamp': timestamp.isoformat(),
-                'predicted_aqi': int(aqi),
-                'aqi_category': category,
-                'aqi_color': color,
-                'hour_ahead': i + 1
+                'timestamp': row['timestamp'].isoformat() if hasattr(row['timestamp'], 'isoformat') else str(row['timestamp']),
+                'predicted_aqi': int(row['predicted_aqi']),
+                'aqi_category': category_info.get('category'),
+                'aqi_color': category_info.get('color'),
+                'hour_ahead': int(row.get('horizon_hours', 0)),
             })
-        
         return jsonify(formatted_predictions)
         
     except Exception as e:
@@ -134,7 +133,7 @@ def get_predictions():
         lat = float(request.args.get('lat'))
         lng = float(request.args.get('lng'))
         
-        # Run inference only
+        # Run inference only (returns DataFrame with exactly 3 horizons: 24/48/72h)
         predictions = run_inference_pipeline(lat, lng)
         
         if predictions is None:
@@ -142,20 +141,16 @@ def get_predictions():
         
         # Format predictions
         formatted_predictions = []
-        for i, (timestamp, aqi) in enumerate(predictions):
-            from aqi_calculator import get_aqi_category, get_aqi_color
-            
-            category = get_aqi_category(aqi)
-            color = get_aqi_color(aqi)
-            
+        from aqi_calculator import get_aqi_category
+        for _, row in predictions.iterrows():
+            category_info = get_aqi_category(row['predicted_aqi'])
             formatted_predictions.append({
-                'timestamp': timestamp.isoformat(),
-                'predicted_aqi': int(aqi),
-                'aqi_category': category,
-                'aqi_color': color,
-                'hour_ahead': i + 1
+                'timestamp': row['timestamp'].isoformat() if hasattr(row['timestamp'], 'isoformat') else str(row['timestamp']),
+                'predicted_aqi': int(row['predicted_aqi']),
+                'aqi_category': category_info.get('category'),
+                'aqi_color': category_info.get('color'),
+                'hour_ahead': int(row.get('horizon_hours', 0)),
             })
-        
         return jsonify(formatted_predictions)
         
     except Exception as e:
@@ -198,7 +193,7 @@ def train_models():
 
 if __name__ == '__main__':
     # Check if API key is available
-    if not OPENWEATHER_API_KEY:
+    if not get_api_key():
         print("❌ Warning: OPENWEATHER_API_KEY not set. Some features may not work.")
     
     print("🚀 Starting AQI Prediction API Server...")

@@ -14,7 +14,8 @@ To extend the repertoire of models, simply add new entries to the
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, Tuple, List, Optional
+from typing import Dict, Tuple, List, Optional, Union
+import os
 
 import numpy as np
 import pandas as pd
@@ -27,13 +28,19 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 from sklearn.neural_network import MLPRegressor
 
-try:
-    import tensorflow as tf  # type: ignore
-except ImportError:
-    tf = None  # type: ignore
-
 from .feature_store import FeatureStore
 from .model_registry import ModelRegistry
+
+
+def _get_tensorflow():
+    """Return tensorflow only when explicitly enabled and importable."""
+    if os.getenv("AQI_ENABLE_TENSORFLOW", "0") != "1":
+        return None
+    try:
+        import tensorflow as tf  # type: ignore
+        return tf
+    except Exception:
+        return None
 
 
 @dataclass
@@ -82,6 +89,8 @@ def prepare_training_data(
     # Determine feature columns if not provided
     if feature_cols is None:
         default_features = [
+            "lat",
+            "lon",
             "co",
             "no",
             "no2",
@@ -103,6 +112,92 @@ def prepare_training_data(
     X = df_sorted[feature_cols].values.astype(float)
     y = df_sorted[target_column].values.astype(float)
     return X, y, feature_cols
+
+
+def train_models_for_horizons(
+    horizons: List[int] = [24, 48, 72],
+    test_size: float = 0.2,
+    random_state: int = 42,
+) -> List[ModelResult]:
+    """Train and register models for multiple prediction horizons.
+
+    For each horizon in hours, the function prepares the target column by shifting
+    the AQI accordingly, trains a set of candidate models, evaluates them, and
+    registers the best one with a horizon-specific model name, e.g.,
+    ``random_forest_h24``.
+
+    Returns a list of best ``ModelResult`` per horizon.
+    """
+    store = FeatureStore()
+    df = store.load()
+    if df.empty:
+        print("No features found in the feature store. Run the feature pipeline first.")
+        return []
+
+    results: List[ModelResult] = []
+
+    for horizon in horizons:
+        X, y, feature_cols = prepare_training_data(df, target_horizon_hours=horizon)
+        if len(X) < 10:
+            print(f"Insufficient data for training horizon {horizon}h. Need at least 10 samples.")
+            continue
+
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=test_size, random_state=random_state
+        )
+
+        candidates: List[ModelResult] = []
+        try:
+            rf_model = train_random_forest(X_train, y_train)
+            rf_metrics = evaluate_model(rf_model, X_test, y_test)
+            candidates.append(ModelResult(f"random_forest_h{horizon}", rf_model, rf_metrics, "sklearn"))
+        except Exception as e:
+            print(f"Random Forest training failed for {horizon}h: {e}")
+
+        try:
+            ridge_model = train_ridge_regression(X_train, y_train)
+            ridge_metrics = evaluate_model(ridge_model, X_test, y_test)
+            candidates.append(ModelResult(f"ridge_regression_h{horizon}", ridge_model, ridge_metrics, "sklearn"))
+        except Exception as e:
+            print(f"Ridge Regression training failed for {horizon}h: {e}")
+
+        try:
+            mlp_model = train_mlp_regressor(X_train, y_train)
+            mlp_metrics = evaluate_model(mlp_model, X_test, y_test)
+            candidates.append(ModelResult(f"mlp_regressor_h{horizon}", mlp_model, mlp_metrics, "sklearn"))
+        except Exception as e:
+            print(f"MLP Regressor training failed for {horizon}h: {e}")
+
+        if _get_tensorflow() is not None:
+            try:
+                keras_model = train_keras_mlp(X_train, y_train, X_test, y_test)
+                if keras_model is not None:
+                    keras_metrics = evaluate_model(keras_model, X_test, y_test)
+                    candidates.append(ModelResult(f"keras_mlp_h{horizon}", keras_model, keras_metrics, "keras"))
+            except Exception as e:
+                print(f"Keras MLP training failed for {horizon}h: {e}")
+
+        if not candidates:
+            print(f"All model training attempts failed for horizon {horizon}h.")
+            continue
+
+        best_model = min(candidates, key=lambda m: m.metrics["rmse"])\
+            if candidates else None
+        if best_model is None:
+            continue
+        print(f"Best model for {horizon}h: {best_model.name} with RMSE={best_model.metrics['rmse']:.3f}")
+
+        registry = ModelRegistry()
+        metadata = registry.register_model(
+            best_model.model,
+            best_model.name,
+            best_model.model_type,
+            best_model.metrics,
+            feature_columns=feature_cols,
+        )
+        results.append(best_model)
+
+    return results
 
 
 def train_random_forest(X_train: np.ndarray, y_train: np.ndarray) -> object:
@@ -153,6 +248,7 @@ def train_keras_mlp(
     environment. It uses an early stopping callback to prevent
     overfitting.
     """
+    tf = _get_tensorflow()
     if tf is None:
         return None
     input_dim = X_train.shape[1]
@@ -271,7 +367,7 @@ def train_and_select_model(
         print(f"MLP Regressor training failed: {e}")
 
     # Keras MLP (if TensorFlow is available)
-    if tf is not None:
+    if _get_tensorflow() is not None:
         try:
             keras_model = train_keras_mlp(X_train, y_train, X_test, y_test)
             if keras_model is not None:
