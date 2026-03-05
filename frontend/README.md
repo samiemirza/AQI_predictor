@@ -53,7 +53,7 @@ A modern React dashboard for the AQI Prediction System with interactive maps, re
 Create a `.env` file in the frontend directory:
 
 ```env
-REACT_APP_API_URL=http://localhost:5000
+REACT_APP_API_URL=http://localhost:5001
 ```
 
 ## 📱 Usage
@@ -134,6 +134,7 @@ npm run build
 1. Install Vercel CLI: `npm i -g vercel`
 2. Run: `vercel`
 3. Follow the prompts
+4. Set `REACT_APP_API_URL` to your backend URL (Render), e.g. `https://aqi-predictor-api.onrender.com`
 
 ## 🐛 Development
 

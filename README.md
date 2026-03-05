@@ -64,6 +64,7 @@ aqi_project/
 For a production-style deployment where React is the public UI and Flask runs in the cloud, see:
 
 - `DEPLOY_REACT_CLOUD.md`
+- `DEPLOY_RENDER_VERCEL.md` (free-tier setup)
 
 ### Quick Start (Recommended)
 

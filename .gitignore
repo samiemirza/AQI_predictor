@@ -1,6 +1,7 @@
 frontend/node_modules/
 **/.cache/
 .env
+.vercel/
 
 # Python cache/compiled files
 __pycache__/
