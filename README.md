@@ -1,7 +1,7 @@
 # Air Quality Index (AQI) Prediction System
 
 This repository implements an end‑to‑end system for predicting the Air
-Quality Index (AQI) of a given location over the coming days. This document covers in detail, how teh system was made.
+Quality Index (AQI) of a given location over the coming days. 
 
 ## Features
 
