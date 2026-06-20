@@ -1,11 +1,7 @@
 # Air Quality Index (AQI) Prediction System
 
 This repository implements an end‑to‑end system for predicting the Air
-Quality Index (AQI) of a given location over the coming days. Inspired
-by the problem brief provided in the "Pearls AQI Predictor" document,
-the solution uses a 100 % Python stack to fetch raw pollution data,
-engineer features, train multiple models, register the best model
-automatically and serve predictions via an interactive dashboard.
+Quality Index (AQI) of a given location over the coming days. This document covers in detail, how teh system was made.
 
 ## Features
 
@@ -195,4 +191,3 @@ A detailed report describing the data exploration, model comparisons
 and insights should be provided in `report.md`. Use this file to
 document the EDA results, visualisations, hyperparameter searches and
 interpretations of the model outputs.# AQI_predictor
-Updated 
