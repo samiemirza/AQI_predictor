@@ -5,17 +5,43 @@ import styled from 'styled-components';
 
 const WidgetCard = styled(Card)`
   height: 100%;
-  border-radius: 8px;
-  border: 1px solid #d9e2ec;
-  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
+  background: rgba(28, 28, 30, 0.72);
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.36),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(28px) saturate(1.35);
+  overflow: hidden;
 
   .ant-card-head {
-    background: #ffffff;
-    border-bottom: 1px solid #e2e8f0;
+    background: rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    min-height: 52px;
   }
+
   .ant-card-head-title {
-    color: #0f172a;
+    color: rgba(255, 255, 255, 0.92);
     font-weight: 600;
+  }
+
+  .ant-card-body {
+    color: rgba(255, 255, 255, 0.88);
+  }
+
+  .ant-statistic-title,
+  .ant-empty-description {
+    color: rgba(235, 235, 245, 0.58);
+  }
+
+  .ant-progress-bg {
+    box-shadow: 0 0 18px currentColor;
+  }
+
+  .ant-alert {
+    background: rgba(255, 69, 58, 0.12);
+    border-color: rgba(255, 69, 58, 0.24);
+    border-radius: 16px;
   }
 `;
 
@@ -42,22 +68,23 @@ const PollutantGrid = styled.div`
 `;
 
 const PollutantCell = styled.div`
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 8px;
+  background: rgba(118, 118, 128, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 10px;
   text-align: left;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 `;
 
 const PollutantName = styled.div`
-  color: #64748b;
+  color: rgba(235, 235, 245, 0.52);
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
 `;
 
 const PollutantValue = styled.div`
-  color: #0f172a;
+  color: rgba(255, 255, 255, 0.92);
   font-size: 14px;
   font-weight: 600;
   margin-top: 2px;
@@ -141,7 +168,7 @@ const CurrentAQIWidget = ({ data, location, loading, error }) => {
             fontWeight: 'bold'
           }}
           suffix={
-            <Tag color={aqiInfo.color} style={{ fontSize: '14px', marginLeft: '8px' }}>
+            <Tag color={aqiInfo.color} style={{ fontSize: '14px', marginLeft: '8px', borderRadius: '999px' }}>
               {category}
             </Tag>
           }
@@ -176,7 +203,7 @@ const CurrentAQIWidget = ({ data, location, loading, error }) => {
         )}
 
         {location && (
-          <div style={{ marginTop: '16px', fontSize: '14px', color: '#666' }}>
+          <div style={{ marginTop: '16px', fontSize: '14px', color: 'rgba(235, 235, 245, 0.58)' }}>
             {location.name || `(${location.lat.toFixed(4)}, ${location.lng.toFixed(4)})`}
           </div>
         )}

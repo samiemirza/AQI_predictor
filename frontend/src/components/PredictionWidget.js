@@ -5,17 +5,63 @@ import styled from 'styled-components';
 
 const WidgetCard = styled(Card)`
   height: 100%;
-  border-radius: 8px;
-  border: 1px solid #d9e2ec;
-  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
+  background: rgba(28, 28, 30, 0.72);
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.36),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(28px) saturate(1.35);
+  overflow: hidden;
 
   .ant-card-head {
-    background: #ffffff;
-    border-bottom: 1px solid #e2e8f0;
+    background: rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    min-height: 52px;
   }
+
   .ant-card-head-title {
-    color: #0f172a;
+    color: rgba(255, 255, 255, 0.92);
     font-weight: 600;
+  }
+
+  .ant-card-body {
+    color: rgba(255, 255, 255, 0.88);
+  }
+
+  .ant-empty-description,
+  .ant-statistic-title {
+    color: rgba(235, 235, 245, 0.58);
+  }
+
+  .ant-alert {
+    background: rgba(255, 159, 10, 0.12);
+    border-color: rgba(255, 159, 10, 0.24);
+    border-radius: 16px;
+  }
+
+  .ant-table {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.84);
+  }
+
+  .ant-table-container,
+  .ant-table-cell {
+    border-color: rgba(255, 255, 255, 0.08) !important;
+  }
+
+  .ant-table-thead > tr > th {
+    background: rgba(118, 118, 128, 0.16) !important;
+    color: rgba(235, 235, 245, 0.68) !important;
+    font-weight: 600;
+  }
+
+  .ant-table-tbody > tr > td {
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .ant-table-tbody > tr:hover > td {
+    background: rgba(10, 132, 255, 0.12) !important;
   }
 `;
 
@@ -31,10 +77,11 @@ const StatsContainer = styled.div`
   margin: 18px 0;
 
   .ant-statistic {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
+    background: rgba(118, 118, 128, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
     padding: 12px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
   }
 
   @media (max-width: 640px) {
@@ -192,17 +239,31 @@ const PredictionWidget = ({ data, location, loading, error }) => {
       <ChartContainer>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" />
+            <CartesianGrid stroke="rgba(255,255,255,0.08)" strokeDasharray="3 3" />
             <XAxis
               dataKey="time"
               height={42}
               fontSize={12}
+              tick={{ fill: 'rgba(235, 235, 245, 0.58)' }}
+              axisLine={{ stroke: 'rgba(255,255,255,0.12)' }}
+              tickLine={{ stroke: 'rgba(255,255,255,0.12)' }}
             />
             <YAxis
               domain={[0, 500]}
-              label={{ value: 'AQI', angle: -90, position: 'insideLeft' }}
+              tick={{ fill: 'rgba(235, 235, 245, 0.58)' }}
+              axisLine={{ stroke: 'rgba(255,255,255,0.12)' }}
+              tickLine={{ stroke: 'rgba(255,255,255,0.12)' }}
+              label={{ value: 'AQI', angle: -90, position: 'insideLeft', fill: 'rgba(235, 235, 245, 0.58)' }}
             />
             <Tooltip
+              contentStyle={{
+                background: 'rgba(28, 28, 30, 0.92)',
+                border: '1px solid rgba(255,255,255,0.14)',
+                borderRadius: 14,
+                boxShadow: '0 18px 50px rgba(0,0,0,0.38)',
+                color: 'rgba(255,255,255,0.9)'
+              }}
+              labelStyle={{ color: 'rgba(255,255,255,0.9)' }}
               formatter={(value) => [`${Number(value).toFixed(1)} AQI`, 'Predicted AQI']}
               labelFormatter={(label, payload) => {
                 const point = payload?.[0]?.payload;
@@ -212,9 +273,9 @@ const PredictionWidget = ({ data, location, loading, error }) => {
             <Line
               type="monotone"
               dataKey="aqi"
-              stroke="#0284c7"
+              stroke="#0a84ff"
               strokeWidth={3}
-              dot={{ fill: '#0284c7', strokeWidth: 2, r: 4 }}
+              dot={{ fill: '#0a84ff', strokeWidth: 2, r: 4 }}
               activeDot={{ r: 6 }}
             />
           </LineChart>
@@ -233,7 +294,7 @@ const PredictionWidget = ({ data, location, loading, error }) => {
       </div>
 
       {location && (
-        <div style={{ marginTop: '16px', fontSize: '14px', color: '#666', textAlign: 'center' }}>
+        <div style={{ marginTop: '16px', fontSize: '14px', color: 'rgba(235, 235, 245, 0.58)', textAlign: 'center' }}>
           Forecast for {location.name || `(${location.lat.toFixed(4)}, ${location.lng.toFixed(4)})`}
         </div>
       )}

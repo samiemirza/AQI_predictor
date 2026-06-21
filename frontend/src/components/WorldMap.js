@@ -6,9 +6,51 @@ import styled from 'styled-components';
 const MapWrapper = styled.div`
   height: 520px;
   width: 100%;
+  background: #111114;
 
   .leaflet-container {
     font-family: inherit;
+    background: #111114;
+  }
+
+  .leaflet-control-zoom a,
+  .leaflet-control-attribution {
+    background: rgba(28, 28, 30, 0.82) !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    color: rgba(255, 255, 255, 0.82) !important;
+    backdrop-filter: blur(18px);
+  }
+
+  .leaflet-control-zoom {
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 14px 42px rgba(0, 0, 0, 0.34);
+  }
+
+  .leaflet-control-zoom a:hover {
+    background: rgba(58, 58, 60, 0.9) !important;
+  }
+
+  .leaflet-popup-content-wrapper,
+  .leaflet-popup-tip {
+    background: rgba(28, 28, 30, 0.94);
+    color: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.42);
+    backdrop-filter: blur(22px);
+  }
+
+  .leaflet-popup-content-wrapper {
+    border-radius: 16px;
+  }
+
+  .leaflet-popup-content {
+    margin: 12px 14px;
+  }
+
+  .leaflet-popup-close-button {
+    color: rgba(235, 235, 245, 0.62) !important;
   }
 
   @media (max-width: 768px) {
@@ -61,8 +103,8 @@ const WorldMap = ({ onLocationSelect, selectedLocation }) => {
       >
         <MapClickHandler />
         <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
         />
 
         {/* Major cities markers */}

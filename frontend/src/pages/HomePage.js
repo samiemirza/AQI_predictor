@@ -16,37 +16,88 @@ const PageContainer = styled.div`
 `;
 
 const PageHeader = styled.div`
-  margin-bottom: 20px;
+  margin-bottom: 22px;
 `;
 
 const HeaderMeta = styled.div`
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #475569;
+  color: rgba(235, 235, 245, 0.62);
   flex-wrap: wrap;
+
+  .ant-typography {
+    color: rgba(235, 235, 245, 0.62);
+  }
 `;
 
 const MapContainer = styled.div`
-  background: white;
-  border: 1px solid #d9e2ec;
-  border-radius: 8px;
-  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+  background: rgba(28, 28, 30, 0.68);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 22px;
+  box-shadow:
+    0 26px 80px rgba(0, 0, 0, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
   overflow: hidden;
   margin-bottom: 24px;
+  backdrop-filter: blur(28px) saturate(1.3);
 `;
 
 const Panel = styled.div`
-  background: white;
+  background: rgba(28, 28, 30, 0.72);
   padding: 18px;
-  border: 1px solid #d9e2ec;
-  border-radius: 8px;
-  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 22px;
+  box-shadow:
+    0 22px 70px rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
   margin-bottom: 24px;
+  backdrop-filter: blur(28px) saturate(1.35);
+
+  .ant-input-affix-wrapper,
+  .ant-input-group-addon,
+  .ant-input-search-button {
+    border-color: rgba(255, 255, 255, 0.12) !important;
+  }
+
+  .ant-input-affix-wrapper,
+  .ant-input {
+    background: rgba(118, 118, 128, 0.18) !important;
+    color: rgba(255, 255, 255, 0.92);
+  }
+
+  .ant-input-affix-wrapper {
+    border-radius: 14px 0 0 14px !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+
+  .ant-input::placeholder {
+    color: rgba(235, 235, 245, 0.38);
+  }
+
+  .ant-input-search-button {
+    border-radius: 0 14px 14px 0 !important;
+    background: linear-gradient(180deg, #0a84ff, #0066d6);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  }
+
+  .ant-alert {
+    background: rgba(10, 132, 255, 0.14);
+    border-color: rgba(10, 132, 255, 0.26);
+    border-radius: 16px;
+  }
+
+  .ant-alert-message {
+    color: rgba(255, 255, 255, 0.92);
+  }
+
+  .ant-alert-description {
+    color: rgba(235, 235, 245, 0.62);
+  }
 `;
 
 const FieldLabel = styled.div`
-  color: #334155;
+  color: rgba(235, 235, 245, 0.72);
   font-size: 13px;
   font-weight: 600;
   margin-bottom: 8px;
@@ -173,7 +224,9 @@ const HomePage = () => {
   return (
     <PageContainer>
       <PageHeader>
-        <Title level={2} style={{ margin: 0, color: '#0f172a' }}>Air quality forecast</Title>
+        <Title level={2} style={{ margin: 0, color: 'rgba(255, 255, 255, 0.94)', fontWeight: 650 }}>
+          Air quality forecast
+        </Title>
         <HeaderMeta>
           <Text>Select a location to fetch live conditions and 24, 48, and 72 hour AQI forecasts.</Text>
         </HeaderMeta>
