@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Row, Col, Input, message, Alert, Typography } from 'antd';
+import { Row, Col, Input, message, Typography } from 'antd';
 import { SearchOutlined, EnvironmentOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 import WorldMap from '../components/WorldMap';
@@ -101,6 +101,46 @@ const FieldLabel = styled.div`
   font-size: 13px;
   font-weight: 600;
   margin-bottom: 8px;
+`;
+
+const SelectedLocationBox = styled.div`
+  min-height: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 14px;
+  background: rgba(10, 132, 255, 0.14);
+  border: 1px solid rgba(10, 132, 255, 0.26);
+  border-radius: 14px;
+  color: rgba(255, 255, 255, 0.92);
+  overflow: hidden;
+`;
+
+const SelectedLocationIcon = styled.span`
+  color: #0a84ff;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+`;
+
+const SelectedLocationName = styled.span`
+  min-width: 0;
+  flex: 1 1 auto;
+  font-size: 14px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
+const SelectedLocationCoords = styled.span`
+  flex: 0 0 auto;
+  margin-left: auto;
+  color: rgba(235, 235, 245, 0.62);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 `;
 
 const WidgetsContainer = styled.div`
@@ -248,13 +288,17 @@ const HomePage = () => {
           </Col>
           <Col xs={24} lg={12}>
             {selectedLocation && (
-              <Alert
-                message={`Selected: ${selectedLocation.name || `Location (${selectedLocation.lat.toFixed(4)}, ${selectedLocation.lng.toFixed(4)})`}`}
-                description={`Coordinates: ${selectedLocation.lat.toFixed(4)}, ${selectedLocation.lng.toFixed(4)}`}
-                type="info"
-                showIcon
-                icon={<EnvironmentOutlined />}
-              />
+              <SelectedLocationBox>
+                <SelectedLocationIcon>
+                  <EnvironmentOutlined />
+                </SelectedLocationIcon>
+                <SelectedLocationName>
+                  {selectedLocation.name || 'Selected location'}
+                </SelectedLocationName>
+                <SelectedLocationCoords>
+                  {selectedLocation.lat.toFixed(4)}, {selectedLocation.lng.toFixed(4)}
+                </SelectedLocationCoords>
+              </SelectedLocationBox>
             )}
           </Col>
         </Row>

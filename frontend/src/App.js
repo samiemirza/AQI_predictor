@@ -1,7 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ConfigProvider, Layout, theme as antdTheme } from 'antd';
-import { CloudOutlined } from '@ant-design/icons';
 import styled, { createGlobalStyle } from 'styled-components';
 import HomePage from './pages/HomePage';
 
@@ -78,13 +77,7 @@ const AppTitle = styled.h1`
   letter-spacing: 0;
   display: flex;
   align-items: center;
-  gap: 8px;
   white-space: nowrap;
-
-  .anticon {
-    color: #0a84ff;
-    font-size: 17px;
-  }
 `;
 
 function App() {
@@ -110,7 +103,6 @@ function App() {
         <StyledLayout>
           <StyledHeader>
             <AppTitle>
-              <CloudOutlined />
               AQI Predictor
             </AppTitle>
           </StyledHeader>
