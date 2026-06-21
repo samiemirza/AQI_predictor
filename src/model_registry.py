@@ -23,7 +23,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, asdict
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple, Type
 import os
@@ -92,6 +92,19 @@ class ModelRegistry:
         filename = f"{model_name}_v{version}.{ext}"
         return self.registry_dir / filename
 
+    def _resolve_model_path(self, file_path: str) -> Path:
+        """Resolve model paths saved on another machine to this registry dir."""
+        stored_path = Path(file_path)
+        candidates = [stored_path]
+        if not stored_path.is_absolute():
+            candidates.append(config.BASE_DIR / stored_path)
+        candidates.append(self.registry_dir / stored_path.name)
+
+        for candidate in candidates:
+            if candidate.exists():
+                return candidate
+        return stored_path
+
     def register_model(
         self,
         model: Any,
@@ -141,7 +154,7 @@ class ModelRegistry:
             version=version,
             model_type=model_type,
             metrics=metrics,
-            created_at=datetime.utcnow().isoformat(),
+            created_at=datetime.now(timezone.utc).isoformat(),
             file_path=str(file_path),
             feature_columns=feature_columns,
         )
@@ -192,7 +205,7 @@ class ModelRegistry:
         # Determine latest version
         latest_entry = max(entries, key=lambda x: x["version"])
         metadata = ModelMetadata(**latest_entry)
-        file_path = Path(metadata.file_path)
+        file_path = self._resolve_model_path(metadata.file_path)
         # Load model
         if metadata.model_type == "sklearn":
             model = joblib.load(file_path)

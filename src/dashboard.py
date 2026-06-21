@@ -8,7 +8,6 @@ This dashboard provides a modern interface with:
 
 from __future__ import annotations
 
-import os
 import sys
 from pathlib import Path
 from typing import Optional, Tuple, Dict, Any
@@ -36,11 +35,11 @@ try:
     from .model_registry import ModelRegistry
 except ImportError:
     # Fallback for direct script execution
-    import config
-    from data_fetcher import fetch_current_air_pollution, fetch_forecast_air_pollution
-    from feature_engineering import compute_features
-    from pipeline import run_inference_pipeline, run_feature_pipeline, run_training_pipeline
-    from model_registry import ModelRegistry
+    from src import config
+    from src.data_fetcher import fetch_current_air_pollution, fetch_forecast_air_pollution
+    from src.feature_engineering import compute_features
+    from src.pipeline import run_inference_pipeline, run_feature_pipeline, run_training_pipeline
+    from src.model_registry import ModelRegistry
 
 # Page configuration
 st.set_page_config(
@@ -187,16 +186,6 @@ def home_page():
     # Sidebar configuration
     st.sidebar.header("🔧 Configuration")
     
-    # API Key input
-    api_key_input = st.sidebar.text_input(
-        "OpenWeatherMap API Key",
-        value=os.getenv("OPENWEATHER_API_KEY", ""),
-        help="API key for fetching air pollution data",
-        type="password",
-    )
-    if api_key_input:
-        os.environ["OPENWEATHER_API_KEY"] = api_key_input
-    
     # City search
     st.sidebar.subheader("🏙️ City Search")
     city_search = st.sidebar.text_input("Search for a city:", placeholder="e.g., New York, London, Tokyo")
@@ -323,14 +312,14 @@ def about_page():
     
     This project uses machine learning to predict air quality index values for locations worldwide.
     It combines real-time air pollution data with advanced forecasting algorithms to provide
-    accurate predictions up to 5 days in advance.
+    24, 48, and 72 hour AQI forecasts.
     
     ### 🎯 Key Features
     
     - **🌍 Global Coverage**: Predict AQI for any location worldwide
     - **🤖 Machine Learning**: Uses multiple ML models (Random Forest, Neural Networks)
     - **📊 Real-time Data**: Fetches live air pollution data from OpenWeatherMap API
-    - **🔮 5-Day Forecast**: Predicts air quality up to 5 days in advance
+    - **🔮 Forecast Horizons**: Predicts AQI at 24, 48, and 72 hours
     - **📈 Interactive Dashboard**: Beautiful visualizations and real-time updates
     - **⚡ Automated Pipeline**: Complete ML pipeline from data collection to predictions
     
@@ -344,10 +333,11 @@ def about_page():
     
     ### 📊 Model Performance
     
-    - **Current Model**: Random Forest (v6)
-    - **RMSE**: 8.26 (Root Mean Square Error)
-    - **MAE**: 4.96 (Mean Absolute Error)
-    - **R²**: 0.796 (79.6% variance explained)
+    - **Current Model**: Random Forest horizon models (v2)
+    - **24h RMSE**: 3.17
+    - **48h RMSE**: 3.16
+    - **72h RMSE**: 4.40
+    - **72h R²**: 0.950
     
     ### 🛠️ Technical Stack
     
@@ -383,15 +373,15 @@ def about_page():
     The system uses the OpenWeatherMap Air Pollution API to fetch:
     - Current air pollution data
     - Historical air pollution data (5 days)
-    - Forecast air pollution data (5 days)
+    - Forecast air pollution data for 24, 48, and 72 hour AQI outputs
     
     ### 🔧 Getting Started
     
-    1. Set your OpenWeatherMap API key in the sidebar
+    1. Set your OpenWeatherMap API key in the root `.env` file
     2. Select a location on the map or search for a city
     3. Click "Update Data" to collect latest air pollution data
     4. Click "Train Models" to train the prediction models
-    5. Click "Generate Predictions" to get 5-day AQI forecasts
+    5. Click "Generate Predictions" to get AQI forecast horizons
     
     ### 📞 Support
     
@@ -399,7 +389,7 @@ def about_page():
     
     ---
     
-    **Built with ❤️ for better air quality monitoring and prediction**
+    **Built for better air quality monitoring and prediction**
     """)
 
 def main():

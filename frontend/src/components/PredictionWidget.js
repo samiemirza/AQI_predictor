@@ -1,16 +1,20 @@
 import React from 'react';
-import { Card, Statistic, Table, Tag, Empty, Alert } from 'antd';
+import { Card, Statistic, Table, Tag, Empty, Alert, Spin } from 'antd';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import styled from 'styled-components';
 
 const WidgetCard = styled(Card)`
   height: 100%;
+  border-radius: 8px;
+  border: 1px solid #d9e2ec;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
+
   .ant-card-head {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
   }
   .ant-card-head-title {
-    color: white;
+    color: #0f172a;
     font-weight: 600;
   }
 `;
@@ -23,67 +27,110 @@ const ChartContainer = styled.div`
 const StatsContainer = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  gap: 16px;
-  margin: 20px 0;
+  gap: 12px;
+  margin: 18px 0;
+
+  .ant-statistic {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px;
+  }
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const getAQIColor = (aqi) => {
-  if (aqi <= 50) return '#66bb6a';
-  if (aqi <= 100) return '#ffa500';
+  if (aqi <= 50) return '#00a65a';
+  if (aqi <= 100) return '#b7791f';
   if (aqi <= 150) return '#ff7e00';
-  if (aqi <= 200) return '#ff0000';
+  if (aqi <= 200) return '#dc2626';
   if (aqi <= 300) return '#8f3f97';
   return '#7e0023';
 };
 
 const getAQICategory = (aqi) => {
-  if (aqi <= 50) return { text: 'Good', color: '#66bb6a' };
-  if (aqi <= 100) return { text: 'Moderate', color: '#ffa500' };
-  if (aqi <= 150) return { text: 'Unhealthy for Sensitive Groups', color: 'warning' };
-  if (aqi <= 200) return { text: 'Unhealthy', color: 'error' };
-  if (aqi <= 300) return { text: 'Very Unhealthy', color: 'error' };
-  return { text: 'Hazardous', color: 'error' };
+  if (aqi <= 50) return { text: 'Good', color: 'green' };
+  if (aqi <= 100) return { text: 'Moderate', color: 'gold' };
+  if (aqi <= 150) return { text: 'Unhealthy for Sensitive Groups', color: 'orange' };
+  if (aqi <= 200) return { text: 'Unhealthy', color: 'red' };
+  if (aqi <= 300) return { text: 'Very Unhealthy', color: 'purple' };
+  return { text: 'Hazardous', color: 'volcano' };
 };
 
-const PredictionWidget = ({ data, location }) => {
+const PredictionWidget = ({ data, location, loading, error }) => {
+  if (loading && (!data || !data.length)) {
+    return (
+      <WidgetCard title="AQI Forecast">
+        <div style={{ minHeight: 260, display: 'grid', placeItems: 'center' }}>
+          <Spin tip="Fetching forecast" />
+        </div>
+      </WidgetCard>
+    );
+  }
+
+  if (error) {
+    return (
+      <WidgetCard title="AQI Forecast">
+        <Alert
+          type="error"
+          showIcon
+          message="Forecast unavailable"
+          description={error}
+        />
+      </WidgetCard>
+    );
+  }
+
   if (!data || !data.length) {
     return (
-      <WidgetCard title="AQI Predictions">
-        <Empty description="No predictions available. Generate predictions first." />
+      <WidgetCard title="AQI Forecast">
+        <Empty description="Select a location to fetch forecast horizons." />
       </WidgetCard>
     );
   }
 
   // Prepare chart data
   const chartData = data.map(item => ({
-    time: new Date(item.timestamp).toLocaleDateString(),
-    aqi: item.predicted_aqi,
-    category: getAQICategory(item.predicted_aqi).text
+    time: `+${item.hour_ahead || 0}h`,
+    date: new Date(item.timestamp).toLocaleString(),
+    aqi: Number(item.predicted_aqi),
+    category: item.aqi_category || getAQICategory(item.predicted_aqi).text
   }));
 
   // Calculate statistics
-  const avgAQI = data.reduce((sum, item) => sum + item.predicted_aqi, 0) / data.length;
-  const maxAQI = Math.max(...data.map(item => item.predicted_aqi));
-  const minAQI = Math.min(...data.map(item => item.predicted_aqi));
+  const values = data.map(item => Number(item.predicted_aqi));
+  const avgAQI = values.reduce((sum, item) => sum + item, 0) / values.length;
+  const maxAQI = Math.max(...values);
+  const minAQI = Math.min(...values);
 
   // Check for hazardous levels
-  const hazardousCount = data.filter(item => item.predicted_aqi > 150).length;
+  const hazardousCount = values.filter(item => item > 150).length;
 
   // Prepare table data
   const tableData = data.map((item, index) => ({
     key: index,
+    horizon: `${item.hour_ahead || 0}h`,
     time: new Date(item.timestamp).toLocaleString(),
-    aqi: item.predicted_aqi.toFixed(1),
-    category: getAQICategory(item.predicted_aqi).text,
+    aqi: Number(item.predicted_aqi).toFixed(1),
+    category: item.aqi_category || getAQICategory(item.predicted_aqi).text,
     color: getAQICategory(item.predicted_aqi).color
   }));
 
   const columns = [
     {
+      title: 'Horizon',
+      dataIndex: 'horizon',
+      key: 'horizon',
+      width: 90,
+    },
+    {
       title: 'Time',
       dataIndex: 'time',
       key: 'time',
-      width: '40%',
+      width: '38%',
     },
     {
       title: 'AQI',
@@ -110,13 +157,13 @@ const PredictionWidget = ({ data, location }) => {
   ];
 
   return (
-    <WidgetCard title="AQI Predictions">
+    <WidgetCard title="AQI Forecast" loading={loading}>
       {/* Hazardous Alert */}
       {hazardousCount > 0 && (
         <Alert
-          message={`🚨 ${hazardousCount} hazardous readings predicted`}
-          description="Some predicted AQI values exceed the hazardous threshold (150)."
-          type="error"
+          message={`${hazardousCount} forecast horizons exceed AQI 150`}
+          description="Sensitive groups and outdoor activity planning need attention."
+          type="warning"
           showIcon
           style={{ marginBottom: '16px' }}
         />
@@ -146,27 +193,28 @@ const PredictionWidget = ({ data, location }) => {
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis 
-              dataKey="time" 
-              angle={-45}
-              textAnchor="end"
-              height={80}
+            <XAxis
+              dataKey="time"
+              height={42}
               fontSize={12}
             />
-            <YAxis 
+            <YAxis
               domain={[0, 500]}
               label={{ value: 'AQI', angle: -90, position: 'insideLeft' }}
             />
-            <Tooltip 
-              formatter={(value) => [`${value} AQI`, 'Predicted AQI']}
-              labelFormatter={(label) => `Date: ${label}`}
+            <Tooltip
+              formatter={(value) => [`${Number(value).toFixed(1)} AQI`, 'Predicted AQI']}
+              labelFormatter={(label, payload) => {
+                const point = payload?.[0]?.payload;
+                return point ? `${label} (${point.date})` : label;
+              }}
             />
             <Line
               type="monotone"
               dataKey="aqi"
-              stroke="#667eea"
+              stroke="#0284c7"
               strokeWidth={3}
-              dot={{ fill: '#667eea', strokeWidth: 2, r: 4 }}
+              dot={{ fill: '#0284c7', strokeWidth: 2, r: 4 }}
               activeDot={{ r: 6 }}
             />
           </LineChart>
@@ -175,7 +223,6 @@ const PredictionWidget = ({ data, location }) => {
 
       {/* Predictions Table */}
       <div style={{ marginTop: '20px' }}>
-        <h4>📋 Detailed Predictions</h4>
         <Table
           dataSource={tableData}
           columns={columns}
@@ -187,11 +234,11 @@ const PredictionWidget = ({ data, location }) => {
 
       {location && (
         <div style={{ marginTop: '16px', fontSize: '14px', color: '#666', textAlign: 'center' }}>
-          📍 Predictions for {location.name || `(${location.lat.toFixed(4)}, ${location.lng.toFixed(4)})`}
+          Forecast for {location.name || `(${location.lat.toFixed(4)}, ${location.lng.toFixed(4)})`}
         </div>
       )}
     </WidgetCard>
   );
 };
 
-export default PredictionWidget; 
+export default PredictionWidget;

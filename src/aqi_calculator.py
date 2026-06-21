@@ -10,6 +10,7 @@ pollutant and returns the highest sub-index as the overall AQI.
 from __future__ import annotations
 
 import numpy as np
+import math
 from typing import Dict, List, Optional, Tuple, Union
 
 # US EPA AQI Breakpoints
@@ -72,25 +73,83 @@ AQI_BREAKPOINTS = {
 # AQI categories and colors
 AQI_CATEGORIES = {
     (0, 50): {"category": "Good", "color": "#00e400", "health_impact": "Air quality is considered satisfactory"},
-    (51, 100): {"category": "Moderate", "color": "#ff7e00", "health_impact": "Some concern for sensitive groups"},
+    (51, 100): {"category": "Moderate", "color": "#ffff00", "health_impact": "Some concern for sensitive groups"},
     (101, 150): {"category": "Unhealthy for Sensitive Groups", "color": "#ff7e00", "health_impact": "May cause health effects in sensitive groups"},
     (151, 200): {"category": "Unhealthy", "color": "#ff0000", "health_impact": "May cause health effects in everyone"},
     (201, 300): {"category": "Very Unhealthy", "color": "#8f3f97", "health_impact": "May cause serious health effects"},
     (301, 500): {"category": "Hazardous", "color": "#7e0023", "health_impact": "May cause serious health effects"},
 }
 
+# OpenWeatherMap reports all gas concentrations in micrograms per cubic meter.
+# EPA gas breakpoints are expressed as ppb for O3/NO2/SO2 and ppm for CO.
+MOLAR_VOLUME_25C_L_PER_MOL = 24.45
+GAS_MOLECULAR_WEIGHTS = {
+    "co": 28.0101,
+    "o3": 47.9982,
+    "no2": 46.0055,
+    "so2": 64.066,
+}
+
+
+def _truncate_concentration(concentration: float, pollutant: str) -> float:
+    """Truncate concentrations to the precision used by EPA breakpoints."""
+    if pollutant in {"pm2_5", "co"}:
+        return math.floor(concentration * 10) / 10
+    if pollutant in {"pm10", "o3", "no2", "so2"}:
+        return math.floor(concentration)
+    return concentration
+
+
+def _ugm3_to_ppb(concentration: float, molecular_weight: float) -> float:
+    return concentration * MOLAR_VOLUME_25C_L_PER_MOL / molecular_weight
+
+
+def _ugm3_to_ppm(concentration: float, molecular_weight: float) -> float:
+    return _ugm3_to_ppb(concentration, molecular_weight) / 1000
+
+
+def convert_openweather_components(api_data: Dict[str, float]) -> Dict[str, Optional[float]]:
+    """Convert OpenWeatherMap component units into EPA AQI breakpoint units."""
+    converted: Dict[str, Optional[float]] = {
+        "pm2_5": api_data.get("pm2_5"),
+        "pm10": api_data.get("pm10"),
+    }
+
+    for pollutant in ["o3", "no2", "so2"]:
+        value = api_data.get(pollutant)
+        converted[pollutant] = (
+            _ugm3_to_ppb(float(value), GAS_MOLECULAR_WEIGHTS[pollutant])
+            if value is not None
+            else None
+        )
+
+    co_value = api_data.get("co")
+    converted["co"] = (
+        _ugm3_to_ppm(float(co_value), GAS_MOLECULAR_WEIGHTS["co"])
+        if co_value is not None
+        else None
+    )
+    return converted
+
+
+def clamp_aqi(aqi_value: float) -> float:
+    """Clamp AQI values to the standard 0-500 dashboard range."""
+    if aqi_value is None or np.isnan(aqi_value):
+        return np.nan
+    return max(0.0, min(500.0, float(aqi_value)))
+
 
 def calculate_sub_index(concentration: float, pollutant: str) -> Optional[float]:
     """
     Calculate the AQI sub-index for a single pollutant.
-    
+
     Parameters
     ----------
     concentration : float
         Pollutant concentration in appropriate units.
     pollutant : str
         Pollutant name (pm2_5, pm10, o3, no2, co, so2).
-        
+
     Returns
     -------
     float or None
@@ -98,33 +157,40 @@ def calculate_sub_index(concentration: float, pollutant: str) -> Optional[float]
     """
     if pollutant not in AQI_BREAKPOINTS:
         return None
-    
+    if concentration is None or np.isnan(concentration) or concentration < 0:
+        return None
+
+    concentration = _truncate_concentration(float(concentration), pollutant)
+
     breakpoints = AQI_BREAKPOINTS[pollutant]
-    
+
     for bp_low, bp_high, aqi_low, aqi_high in breakpoints:
         if bp_low <= concentration <= bp_high:
             # Linear interpolation formula
             aqi = ((aqi_high - aqi_low) / (bp_high - bp_low)) * (concentration - bp_low) + aqi_low
             return round(aqi)
-    
+
+    if concentration > breakpoints[-1][1]:
+        return 500
+
     return None
 
 
 def calculate_aqi(pollutants: Dict[str, float]) -> Dict[str, Union[float, str, Dict]]:
     """
     Calculate the overall AQI from pollutant concentrations.
-    
+
     Parameters
     ----------
     pollutants : dict
         Dictionary of pollutant concentrations with keys:
         - pm2_5: PM2.5 concentration (μg/m³)
-        - pm10: PM10 concentration (μg/m³) 
+        - pm10: PM10 concentration (μg/m³)
         - o3: Ozone concentration (ppb)
         - no2: Nitrogen dioxide concentration (ppb)
         - co: Carbon monoxide concentration (ppm)
         - so2: Sulfur dioxide concentration (ppb)
-        
+
     Returns
     -------
     dict
@@ -137,14 +203,14 @@ def calculate_aqi(pollutants: Dict[str, float]) -> Dict[str, Union[float, str, D
         - dominant_pollutant: Pollutant with highest sub-index
     """
     sub_indices = {}
-    
+
     # Calculate sub-indices for each pollutant
     for pollutant, concentration in pollutants.items():
         if concentration is not None and not np.isnan(concentration):
             sub_index = calculate_sub_index(concentration, pollutant)
             if sub_index is not None:
                 sub_indices[pollutant] = sub_index
-    
+
     if not sub_indices:
         return {
             "aqi": None,
@@ -154,21 +220,21 @@ def calculate_aqi(pollutants: Dict[str, float]) -> Dict[str, Union[float, str, D
             "sub_indices": {},
             "dominant_pollutant": None
         }
-    
+
     # Find the highest sub-index (overall AQI)
-    overall_aqi = max(sub_indices.values())
+    overall_aqi = clamp_aqi(max(sub_indices.values()))
     dominant_pollutant = max(sub_indices, key=sub_indices.get)
-    
+
     # Determine category
     category_info = None
     for (low, high), info in AQI_CATEGORIES.items():
         if low <= overall_aqi <= high:
             category_info = info
             break
-    
+
     if category_info is None:
         category_info = AQI_CATEGORIES[(301, 500)]  # Default to hazardous
-    
+
     return {
         "aqi": overall_aqi,
         "category": category_info["category"],
@@ -182,46 +248,46 @@ def calculate_aqi(pollutants: Dict[str, float]) -> Dict[str, Union[float, str, D
 def calculate_aqi_from_api_data(api_data: Dict[str, float]) -> Dict[str, Union[float, str, Dict]]:
     """
     Calculate AQI from OpenWeatherMap API data format.
-    
+
     Parameters
     ----------
     api_data : dict
-        Dictionary from OpenWeatherMap API with pollutant concentrations.
-        Expected keys: pm2_5, pm10, o3, no2, co, so2, nh3
-        
+        Dictionary from OpenWeatherMap API with pollutant concentrations in
+        micrograms per cubic meter. Expected keys: pm2_5, pm10, o3, no2, co,
+        so2, nh3.
+
     Returns
     -------
     dict
         AQI calculation result
     """
-    # Convert API data to our format
-    pollutants = {
-        "pm2_5": api_data.get("pm2_5"),
-        "pm10": api_data.get("pm10"),
-        "o3": api_data.get("o3"),
-        "no2": api_data.get("no2"),
-        "co": api_data.get("co"),
-        "so2": api_data.get("so2"),
-    }
-    
+    pollutants = convert_openweather_components(api_data)
     return calculate_aqi(pollutants)
 
 
 def get_aqi_category(aqi_value: float) -> Dict[str, str]:
     """
     Get AQI category information for a given AQI value.
-    
+
     Parameters
     ----------
     aqi_value : float
         AQI value (0-500)
-        
+
     Returns
     -------
     dict
         Category information
     """
+    if aqi_value is None or np.isnan(aqi_value):
+        return {
+            "category": "Unknown",
+            "color": "gray",
+            "health_impact": "Insufficient data",
+        }
+
+    clamped_value = clamp_aqi(aqi_value)
     for (low, high), info in AQI_CATEGORIES.items():
-        if low <= aqi_value <= high:
+        if low <= clamped_value <= high:
             return info
-    return AQI_CATEGORIES[(301, 500)]  # Default to hazardous 
+    return AQI_CATEGORIES[(301, 500)]  # Default to hazardous

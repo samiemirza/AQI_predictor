@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Row, Col, Input, message, Alert } from 'antd';
+import { Row, Col, Input, message, Alert, Typography } from 'antd';
 import { SearchOutlined, EnvironmentOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 import WorldMap from '../components/WorldMap';
@@ -8,34 +8,48 @@ import CurrentAQIWidget from '../components/CurrentAQIWidget';
 import { fetchPredictions, fetchCurrentAQI } from '../services/api';
 
 const { Search } = Input;
+const { Title, Text } = Typography;
 
 const PageContainer = styled.div`
   max-width: 1400px;
   margin: 0 auto;
 `;
 
+const PageHeader = styled.div`
+  margin-bottom: 20px;
+`;
+
+const HeaderMeta = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #475569;
+  flex-wrap: wrap;
+`;
+
 const MapContainer = styled.div`
   background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid #d9e2ec;
+  border-radius: 8px;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
   overflow: hidden;
   margin-bottom: 24px;
 `;
 
-const SearchContainer = styled.div`
+const Panel = styled.div`
   background: white;
-  padding: 24px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 18px;
+  border: 1px solid #d9e2ec;
+  border-radius: 8px;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
   margin-bottom: 24px;
 `;
 
-const ActionButtonsContainer = styled.div`
-  background: white;
-  padding: 24px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  margin-bottom: 24px;
+const FieldLabel = styled.div`
+  color: #334155;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 8px;
 `;
 
 const WidgetsContainer = styled.div`
@@ -43,6 +57,10 @@ const WidgetsContainer = styled.div`
   grid-template-columns: 1fr 1fr;
   gap: 24px;
   margin-top: 24px;
+
+  @media (max-width: 1000px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const HomePage = () => {
@@ -52,15 +70,22 @@ const HomePage = () => {
   const [currentAQI, setCurrentAQI] = useState(null);
   const [loading, setLoading] = useState(false);
   const [predictionLoading, setPredictionLoading] = useState(false);
+  const [currentLoading, setCurrentLoading] = useState(false);
+  const [predictionError, setPredictionError] = useState(null);
+  const [currentError, setCurrentError] = useState(null);
 
   const handleLocationSelect = (lat, lng, cityName) => {
     setSelectedLocation({ lat, lng, name: cityName });
-    message.success(`📍 Selected: ${cityName || `Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`}`);
+    setPredictions(null);
+    setCurrentAQI(null);
+    setPredictionError(null);
+    setCurrentError(null);
+    message.success(`Selected ${cityName || `location (${lat.toFixed(4)}, ${lng.toFixed(4)})`}`);
   };
 
   const handleSearch = async (value) => {
     if (!value.trim()) return;
-    
+
     setLoading(true);
     try {
       // This would call a geocoding service
@@ -92,7 +117,7 @@ const HomePage = () => {
       'sao paulo': { lat: -23.5505, lng: -46.6333 },
       'moscow': { lat: 55.7558, lng: 37.6176 }
     };
-    
+
     const normalizedCity = cityName.toLowerCase();
     return cityCoords[normalizedCity] || null;
   };
@@ -101,10 +126,12 @@ const HomePage = () => {
     if (!selectedLocation) return;
     try {
       setPredictionLoading(true);
+      setPredictionError(null);
       const predData = await fetchPredictions(selectedLocation.lat, selectedLocation.lng);
       setPredictions(predData);
     } catch (error) {
       console.error('Prediction polling error:', error);
+      setPredictionError(error?.response?.data?.error || 'Unable to fetch predictions');
     } finally {
       setPredictionLoading(false);
     }
@@ -112,13 +139,18 @@ const HomePage = () => {
 
   const fetchCurrentAQIData = useCallback(async () => {
     if (!selectedLocation) return;
-    
+
     try {
+      setCurrentLoading(true);
+      setCurrentError(null);
       const aqiData = await fetchCurrentAQI(selectedLocation.lat, selectedLocation.lng);
       setCurrentAQI(aqiData);
     } catch (error) {
       console.error('Failed to fetch current AQI:', error);
-      message.error('❌ Failed to fetch current AQI data');
+      setCurrentError(error?.response?.data?.error || 'Unable to fetch current AQI data');
+    }
+    finally {
+      setCurrentLoading(false);
     }
   }, [selectedLocation]);
 
@@ -140,13 +172,17 @@ const HomePage = () => {
 
   return (
     <PageContainer>
-      <h1>AQI Prediction Dashboard</h1>
-      <p>Select a location on the map or search for a city to get air quality predictions.</p>
+      <PageHeader>
+        <Title level={2} style={{ margin: 0, color: '#0f172a' }}>Air quality forecast</Title>
+        <HeaderMeta>
+          <Text>Select a location to fetch live conditions and 24, 48, and 72 hour AQI forecasts.</Text>
+        </HeaderMeta>
+      </PageHeader>
 
-      {/* Search Section */}
-      <SearchContainer>
-        <Row gutter={16} align="middle">
-          <Col span={12}>
+      <Panel>
+        <Row gutter={[16, 16]} align="bottom">
+          <Col xs={24} lg={12}>
+            <FieldLabel>Location search</FieldLabel>
             <Search
               placeholder="Search for a city (e.g., New York, London, Tokyo)"
               enterButton={<SearchOutlined />}
@@ -157,10 +193,11 @@ const HomePage = () => {
               loading={loading}
             />
           </Col>
-          <Col span={12}>
+          <Col xs={24} lg={12}>
             {selectedLocation && (
               <Alert
-                message={`📍 Selected: ${selectedLocation.name || `Location (${selectedLocation.lat.toFixed(4)}, ${selectedLocation.lng.toFixed(4)})`}`}
+                message={`Selected: ${selectedLocation.name || `Location (${selectedLocation.lat.toFixed(4)}, ${selectedLocation.lng.toFixed(4)})`}`}
+                description={`Coordinates: ${selectedLocation.lat.toFixed(4)}, ${selectedLocation.lng.toFixed(4)}`}
                 type="info"
                 showIcon
                 icon={<EnvironmentOutlined />}
@@ -168,24 +205,30 @@ const HomePage = () => {
             )}
           </Col>
         </Row>
-      </SearchContainer>
+      </Panel>
 
-      {/* World Map */}
       <MapContainer>
         <WorldMap onLocationSelect={handleLocationSelect} selectedLocation={selectedLocation} />
       </MapContainer>
 
-      {/* Auto-refresh indicator removed per request */}
-
-      {/* Widgets */}
       {selectedLocation && (
         <WidgetsContainer>
-          <CurrentAQIWidget data={currentAQI} location={selectedLocation} />
-          <PredictionWidget data={predictions} location={selectedLocation} />
+          <CurrentAQIWidget
+            data={currentAQI}
+            location={selectedLocation}
+            loading={currentLoading}
+            error={currentError}
+          />
+          <PredictionWidget
+            data={predictions}
+            location={selectedLocation}
+            loading={predictionLoading}
+            error={predictionError}
+          />
         </WidgetsContainer>
       )}
     </PageContainer>
   );
 };
 
-export default HomePage; 
+export default HomePage;

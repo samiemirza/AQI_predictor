@@ -9,7 +9,7 @@ A modern React dashboard for the AQI Prediction System with interactive maps, re
 - **🎨 Modern UI** - Built with Ant Design and styled-components
 - **📱 Responsive Design** - Works on desktop, tablet, and mobile
 - **⚡ Fast Performance** - Optimized React components with lazy loading
-- **🔧 Easy Configuration** - Simple API key setup and location selection
+- **🔧 Easy Configuration** - Backend `.env` API key setup and location selection
 
 ## 🛠️ Tech Stack
 
@@ -45,12 +45,12 @@ A modern React dashboard for the AQI Prediction System with interactive maps, re
 ### API Key Setup
 
 1. Get your OpenWeatherMap API key from [OpenWeatherMap](https://openweathermap.org/api)
-2. Set the API key in the dashboard sidebar
-3. The key will be stored locally for future use
+2. Set `OPENWEATHER_API_KEY` in the project root `.env` file
+3. Restart the Flask API server after changing `.env`
 
 ### Environment Variables
 
-Create a `.env` file in the frontend directory:
+The frontend only needs an API base URL when it is not using local defaults:
 
 ```env
 REACT_APP_API_URL=http://localhost:5001

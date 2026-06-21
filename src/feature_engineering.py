@@ -128,11 +128,10 @@ def compute_features(
         for c in ["co", "no", "no2", "o3", "so2", "pm2_5", "pm10", "nh3"]
         if c in df.columns
     ]
+    aqi_col = "aqi_numerical" if "aqi_numerical" in df.columns else "main_aqi"
 
     # Difference features
     if compute_change:
-        # Use numerical AQI if available, otherwise fall back to main_aqi
-        aqi_col = "aqi_numerical" if "aqi_numerical" in df.columns else "main_aqi"
         df["aqi_change"] = df[aqi_col].diff()
         for col in pollutant_cols:
             df[f"{col}_change"] = df[col].diff()

@@ -97,11 +97,19 @@ python3 demo_numerical_aqi.py
 
 Sign up for a free [OpenWeatherMap API](https://openweathermap.org/api) account and
 obtain an **API key**. This key is required to access the air
-pollution endpoints. The key can be supplied in two ways:
+pollution endpoints and should be stored in the backend environment.
 
-1. Set the environment variable `OPENWEATHER_API_KEY` before running
-   any scripts.
-2. Provide it interactively within the Streamlit dashboard sidebar.
+Create a `.env` file in the project root, or copy `.env.example`:
+
+```bash
+cp .env.example .env
+```
+
+Then set your key:
+
+```env
+OPENWEATHER_API_KEY=your_api_key_here
+```
 
 #### 2. Install dependencies
 
@@ -152,8 +160,8 @@ Or directly with Streamlit:
 streamlit run src/dashboard.py
 ```
 
-Navigate to the displayed URL in your browser. Use the sidebar to
-enter your latitude/longitude, API key and forecast hazard threshold.
+Navigate to the displayed URL in your browser. The dashboard reads the
+OpenWeatherMap key from the backend `.env` file.
 
 ## Docker usage
 

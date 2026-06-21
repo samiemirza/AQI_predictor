@@ -89,9 +89,9 @@ def run_inference_pipeline(
     lat: float,
     lon: float,
     api_key: Optional[str] = None,
-    prefer_direct_forecast: bool = False,
+    prefer_direct_forecast: bool = True,
 ) -> Optional[pd.DataFrame]:
-    """Generate AQI forecasts for the next five days using the latest model.
+    """Generate AQI forecasts for the next 24, 48 and 72 hours.
 
     Parameters
     ----------
@@ -121,7 +121,8 @@ def run_inference_pipeline(
     )
 
     # Prefer direct forecast-derived AQI (from pollutant forecast + EPA formula)
-    # for more stable location-specific predictions.
+    # for more stable location-specific predictions. Horizon models remain as
+    # fallback when forecast-derived numerical AQI is unavailable.
     if prefer_direct_forecast and "aqi_numerical" in forecast_features.columns:
         ts_series = forecast_features["timestamp"]
         if not ts_series.empty:
@@ -172,45 +173,6 @@ def run_inference_pipeline(
         return None
     model, metadata = latest_entry
     
-    # Helper to extract feature columns and predict for a given model/metadata
-    def _predict_with_model(current_model, current_metadata) -> Optional[pd.DataFrame]:
-        if hasattr(current_metadata, 'feature_columns') and current_metadata.feature_columns:
-            feature_cols_local = [col for col in current_metadata.feature_columns if col in forecast_features.columns]
-            if not feature_cols_local:
-                print("None of the training feature columns found in forecast data.")
-                return None
-        else:
-            default_cols = [
-                "lat",
-                "lon",
-                "co",
-                "no",
-                "no2",
-                "o3",
-                "so2",
-                "pm2_5",
-                "pm10",
-                "nh3",
-                "hour",
-                "dayofweek",
-                "month",
-                "day",
-                "is_weekend",
-                "aqi_change",
-                "pm_ratio",
-            ]
-            feature_cols_local = [col for col in default_cols if col in forecast_features.columns]
-
-        # Build predictions for the first forecast step only (base time), then map to horizon timestamps
-        X_forecast_local = forecast_features[feature_cols_local].values.astype(float)
-        preds_local = current_model.predict(X_forecast_local)
-        base_time = forecast_features["timestamp"].iloc[0]
-        df_local = pd.DataFrame({
-            "timestamp": [base_time],
-            "predicted_aqi": [float(preds_local[0])],
-        })
-        return df_local
-
     # Load horizon-specific models if available and return only up to 3 days
     registry = ModelRegistry()
     horizon_models = {}
@@ -232,24 +194,43 @@ def run_inference_pipeline(
         base_idx = 0
 
     results_list = []
+
+    def _feature_columns_for_model(meta, model_obj) -> Optional[list[str]]:
+        default_cols = [
+            "lat","lon",
+            "co","no","no2","o3","so2","pm2_5","pm10","nh3",
+            "hour","dayofweek","month","day","is_weekend","aqi_change","pm_ratio",
+        ]
+        if hasattr(meta, "feature_columns") and meta.feature_columns:
+            missing_cols = [c for c in meta.feature_columns if c not in forecast_features.columns]
+            if missing_cols:
+                print(f"Forecast data is missing model feature columns: {missing_cols}")
+                return None
+            cols = list(meta.feature_columns)
+        else:
+            cols = [c for c in default_cols if c in forecast_features.columns]
+
+        expected_features = getattr(model_obj, "n_features_in_", None)
+        if expected_features is not None and len(cols) != expected_features:
+            print(
+                f"Feature count mismatch for {getattr(meta, 'name', 'model')}: "
+                f"model expects {expected_features}, got {len(cols)}"
+            )
+            return None
+        return cols
+
     def _predict_for_index(mdl, meta, row_index: int) -> Optional[float]:
         # Build features for a single row index using training feature columns
-        if hasattr(meta, 'feature_columns') and meta.feature_columns:
-            cols = [c for c in meta.feature_columns if c in forecast_features.columns]
-        else:
-            cols = [
-                "lat","lon",
-                "co","no","no2","o3","so2","pm2_5","pm10","nh3",
-                "hour","dayofweek","month","day","is_weekend","aqi_change","pm_ratio",
-            ]
-            cols = [c for c in cols if c in forecast_features.columns]
+        cols = _feature_columns_for_model(meta, mdl)
         if not cols:
             return None
         x = forecast_features.loc[row_index, cols].values.astype(float).reshape(1, -1)
         try:
             y_pred = mdl.predict(x)
-            return float(y_pred[0])
-        except Exception:
+            from .aqi_calculator import clamp_aqi
+            return float(clamp_aqi(y_pred[0]))
+        except Exception as exc:
+            print(f"Model prediction failed for {getattr(meta, 'name', 'model')}: {exc}")
             return None
 
     base_time = ts_series.iloc[base_idx]
@@ -327,7 +308,7 @@ def main() -> None:
 
     # Subparser for run_inference_pipeline
     p_infer = subparsers.add_parser(
-        "run_inference_pipeline", help="Generate predictions for the next five days"
+        "run_inference_pipeline", help="Generate predictions for 24/48/72h horizons"
     )
     p_infer.add_argument("--lat", type=float, required=True, help="Latitude")
     p_infer.add_argument("--lon", type=float, required=True, help="Longitude")

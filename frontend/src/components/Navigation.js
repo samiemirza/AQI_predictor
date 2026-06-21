@@ -6,24 +6,25 @@ const NavContainer = styled.nav`
   margin-left: auto;
   display: flex;
   align-items: center;
+  gap: 6px;
 `;
 
 const NavLink = styled(Link)`
-  color: white;
+  color: rgba(255, 255, 255, 0.78);
   text-decoration: none;
-  padding: 12px 20px;
-  margin: 0 8px;
+  padding: 8px 12px;
   border-radius: 6px;
-  transition: all 0.3s ease;
+  transition: all 0.18s ease;
   font-weight: 500;
-  
+  line-height: 1;
+
   &:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.08);
     color: white;
   }
-  
+
   &.active {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(14, 165, 233, 0.22);
     color: white;
   }
 `;
@@ -33,14 +34,14 @@ const Navigation = () => {
 
   return (
     <NavContainer>
-      <NavLink 
-        to="/" 
+      <NavLink
+        to="/"
         className={location.pathname === '/' ? 'active' : ''}
       >
         Home
       </NavLink>
-      <NavLink 
-        to="/about" 
+      <NavLink
+        to="/about"
         className={location.pathname === '/about' ? 'active' : ''}
       >
         About
@@ -49,4 +50,4 @@ const Navigation = () => {
   );
 };
 
-export default Navigation; 
+export default Navigation;

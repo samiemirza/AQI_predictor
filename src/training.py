@@ -21,7 +21,6 @@ import numpy as np
 import pandas as pd
 
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
-from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import Ridge
 from sklearn.preprocessing import StandardScaler
@@ -30,6 +29,7 @@ from sklearn.neural_network import MLPRegressor
 
 from .feature_store import FeatureStore
 from .model_registry import ModelRegistry
+from .aqi_calculator import calculate_aqi_from_api_data
 
 
 def _get_tensorflow():
@@ -49,6 +49,29 @@ class ModelResult:
     model: object
     metrics: Dict[str, float]
     model_type: str  # 'sklearn' or 'keras'
+
+
+def recompute_training_aqi(df: pd.DataFrame) -> pd.DataFrame:
+    """Recompute numerical AQI targets from pollutant columns with current rules."""
+    pollutant_cols = ["pm2_5", "pm10", "o3", "no2", "co", "so2"]
+    if not any(col in df.columns for col in pollutant_cols):
+        return df
+
+    df = df.copy()
+
+    def _row_aqi(row: pd.Series) -> float:
+        pollutants = {
+            col: row.get(col)
+            for col in pollutant_cols
+            if col in row and pd.notna(row.get(col))
+        }
+        result = calculate_aqi_from_api_data(pollutants)
+        return result["aqi"] if result["aqi"] is not None else np.nan
+
+    df["aqi_numerical"] = df.apply(_row_aqi, axis=1)
+    if "aqi_change" in df.columns:
+        df["aqi_change"] = df["aqi_numerical"].diff()
+    return df
 
 
 def prepare_training_data(
@@ -77,7 +100,7 @@ def prepare_training_data(
         features, ``y`` is a 1D array of targets and ``feature_names``
         lists the names of the columns used.
     """
-    df_sorted = df.sort_values("timestamp").reset_index(drop=True)
+    df_sorted = recompute_training_aqi(df.sort_values("timestamp").reset_index(drop=True))
     # Build target column by shifting AQI backwards
     # Use numerical AQI if available, otherwise fall back to main_aqi
     aqi_col = "aqi_numerical" if "aqi_numerical" in df_sorted.columns else "main_aqi"
@@ -109,9 +132,24 @@ def prepare_training_data(
         ]
         feature_cols = [col for col in default_features if col in df_sorted.columns]
 
+    df_sorted = df_sorted.dropna(subset=[target_column] + feature_cols)
+
     X = df_sorted[feature_cols].values.astype(float)
     y = df_sorted[target_column].values.astype(float)
     return X, y, feature_cols
+
+
+def time_ordered_train_test_split(
+    X: np.ndarray,
+    y: np.ndarray,
+    test_size: float = 0.2,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Split time-series samples without shuffling future rows into training."""
+    if not 0 < test_size < 1:
+        raise ValueError("test_size must be between 0 and 1")
+    split_index = int(len(X) * (1 - test_size))
+    split_index = min(max(split_index, 1), len(X) - 1)
+    return X[:split_index], X[split_index:], y[:split_index], y[split_index:]
 
 
 def train_models_for_horizons(
@@ -142,8 +180,8 @@ def train_models_for_horizons(
             print(f"Insufficient data for training horizon {horizon}h. Need at least 10 samples.")
             continue
 
-        X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=test_size, random_state=random_state
+        X_train, X_test, y_train, y_test = time_ordered_train_test_split(
+            X, y, test_size=test_size
         )
 
         candidates: List[ModelResult] = []
@@ -329,8 +367,8 @@ def train_and_select_model(
         return None
 
     # Split data
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=test_size, random_state=random_state
+    X_train, X_test, y_train, y_test = time_ordered_train_test_split(
+        X, y, test_size=test_size
     )
 
     # Train models
@@ -393,10 +431,8 @@ def train_and_select_model(
         best_model.name,
         best_model.model_type,
         best_model.metrics,
+        feature_columns=feature_cols,
     )
-    
-    # Store feature columns in metadata
-    metadata.feature_columns = feature_cols
     print(f"Registered model '{best_model.name}' version {metadata.version} with metrics: {best_model.metrics}")
 
     return best_model

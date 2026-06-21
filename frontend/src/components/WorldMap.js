@@ -1,11 +1,19 @@
 import React from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import styled from 'styled-components';
 
 const MapWrapper = styled.div`
-  height: 500px;
+  height: 520px;
   width: 100%;
+
+  .leaflet-container {
+    font-family: inherit;
+  }
+
+  @media (max-width: 768px) {
+    height: 420px;
+  }
 `;
 
 // Fix for default markers in React Leaflet
@@ -30,13 +38,18 @@ const WorldMap = ({ onLocationSelect, selectedLocation }) => {
     { name: "Moscow", lat: 55.7558, lng: 37.6176 }
   ];
 
-  const handleMapClick = (e) => {
-    const { lat, lng } = e.latlng;
-    onLocationSelect(lat, lng, null);
-  };
-
   const handleCityClick = (city) => {
     onLocationSelect(city.lat, city.lng, city.name);
+  };
+
+  const MapClickHandler = () => {
+    useMapEvents({
+      click: (e) => {
+        const { lat, lng } = e.latlng;
+        onLocationSelect(lat, lng, null);
+      },
+    });
+    return null;
   };
 
   return (
@@ -45,13 +58,13 @@ const WorldMap = ({ onLocationSelect, selectedLocation }) => {
         center={[20, 0]}
         zoom={2}
         style={{ height: '100%', width: '100%' }}
-        onClick={handleMapClick}
       >
+        <MapClickHandler />
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
-        
+
         {/* Major cities markers */}
         {majorCities.map((city) => (
           <Marker
@@ -65,12 +78,12 @@ const WorldMap = ({ onLocationSelect, selectedLocation }) => {
               <div>
                 <strong>{city.name}</strong>
                 <br />
-                Click to select this location
+                Select this location
               </div>
             </Popup>
           </Marker>
         ))}
-        
+
         {/* Selected location marker */}
         {selectedLocation && (
           <Marker
@@ -98,4 +111,4 @@ const WorldMap = ({ onLocationSelect, selectedLocation }) => {
   );
 };
 
-export default WorldMap; 
+export default WorldMap;

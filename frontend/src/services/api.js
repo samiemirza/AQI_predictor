@@ -3,6 +3,7 @@ import axios from 'axios';
 const isLocalDev = typeof window !== 'undefined' &&
   (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 const API_BASE_URL = process.env.REACT_APP_API_URL || (isLocalDev ? 'http://localhost:5001' : '/api');
+const API_ROUTE_PREFIX = API_BASE_URL.replace(/\/$/, '').endsWith('/api') ? '' : '/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -10,15 +11,6 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-});
-
-// Request interceptor to add API key
-api.interceptors.request.use((config) => {
-  const apiKey = localStorage.getItem('openweather_api_key');
-  if (apiKey) {
-    config.headers['X-API-Key'] = apiKey;
-  }
-  return config;
 });
 
 // Response interceptor for error handling
@@ -30,18 +22,10 @@ api.interceptors.response.use(
   }
 );
 
-export const setApiKey = (apiKey) => {
-  localStorage.setItem('openweather_api_key', apiKey);
-};
-
-export const getApiKey = () => {
-  return localStorage.getItem('openweather_api_key');
-};
-
 // API endpoints
 export const fetchCurrentAQI = async (lat, lng) => {
   try {
-    const response = await api.get('/api/current-aqi', {
+    const response = await api.get(`${API_ROUTE_PREFIX}/current-aqi`, {
       params: { lat, lng }
     });
     return response;
@@ -53,7 +37,7 @@ export const fetchCurrentAQI = async (lat, lng) => {
 
 export const fetchPredictions = async (lat, lng) => {
   try {
-    const response = await api.get('/api/predictions', {
+    const response = await api.get(`${API_ROUTE_PREFIX}/predictions`, {
       params: { lat, lng }
     });
     return response;
@@ -65,7 +49,7 @@ export const fetchPredictions = async (lat, lng) => {
 
 export const updateData = async (lat, lng, daysBack = 5) => {
   try {
-    const response = await api.post('/api/update-data', {
+    const response = await api.post(`${API_ROUTE_PREFIX}/update-data`, {
       lat,
       lng,
       days_back: daysBack
@@ -79,7 +63,7 @@ export const updateData = async (lat, lng, daysBack = 5) => {
 
 export const trainModels = async () => {
   try {
-    const response = await api.post('/api/train-models');
+    const response = await api.post(`${API_ROUTE_PREFIX}/train-models`);
     return response;
   } catch (error) {
     console.error('Error training models:', error);
@@ -89,7 +73,7 @@ export const trainModels = async () => {
 
 export const generatePredictions = async (lat, lng) => {
   try {
-    const response = await api.post('/api/generate-predictions', {
+    const response = await api.post(`${API_ROUTE_PREFIX}/generate-predictions`, {
       lat,
       lng
     });

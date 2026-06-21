@@ -1,9 +1,9 @@
 import React from 'react';
 import { Card, Row, Col, Statistic, Divider, Typography, Space } from 'antd';
-import { 
-  CloudOutlined, 
-  RobotOutlined, 
-  GlobalOutlined, 
+import {
+  CloudOutlined,
+  RobotOutlined,
+  GlobalOutlined,
   ThunderboltOutlined,
   BarChartOutlined,
   SafetyOutlined
@@ -22,7 +22,7 @@ const FeatureCard = styled(Card)`
   height: 100%;
   text-align: center;
   transition: transform 0.3s ease;
-  
+
   &:hover {
     transform: translateY(-5px);
   }
@@ -32,13 +32,13 @@ const AboutPage = () => {
   return (
     <PageContainer>
       <Title level={1}>About AQI Prediction Project</Title>
-      
+
       <Card style={{ marginBottom: '24px' }}>
         <Title level={2}>Air Quality Index (AQI) Prediction System</Title>
         <Paragraph>
           This project uses machine learning to predict air quality index values for locations worldwide.
           It combines real-time air pollution data with advanced forecasting algorithms to provide
-          accurate predictions up to 5 days in advance.
+          forecasts for the next 24, 48, and 72 hours.
         </Paragraph>
       </Card>
 
@@ -69,8 +69,8 @@ const AboutPage = () => {
         <Col xs={24} sm={12} lg={8}>
           <FeatureCard>
             <ThunderboltOutlined style={{ fontSize: '48px', color: '#fa8c16', marginBottom: '16px' }} />
-            <Title level={4}>5-Day Forecast</Title>
-            <Paragraph>Predicts air quality up to 5 days in advance with hourly granularity</Paragraph>
+            <Title level={4}>Forecast Horizons</Title>
+            <Paragraph>Shows 24, 48, and 72 hour AQI outlooks for selected locations</Paragraph>
           </FeatureCard>
         </Col>
         <Col xs={24} sm={12} lg={8}>
@@ -119,7 +119,7 @@ const AboutPage = () => {
               <div>
                 <Title level={4}>4. Prediction</Title>
                 <Paragraph>
-                  Uses the trained model to forecast future AQI values for the next 5 days with hourly precision.
+                  Uses trained horizon models and forecast pollutant data to estimate AQI at 24, 48, and 72 hours.
                 </Paragraph>
               </div>
               <div>
@@ -141,14 +141,14 @@ const AboutPage = () => {
           <Col xs={24} sm={8}>
             <Statistic
               title="Current Model"
-              value="Random Forest v6"
+              value="Random Forest horizons v2"
               valueStyle={{ color: '#1890ff' }}
             />
           </Col>
           <Col xs={24} sm={8}>
             <Statistic
-              title="RMSE"
-              value={8.26}
+              title="72h RMSE"
+              value={4.4}
               precision={2}
               valueStyle={{ color: '#52c41a' }}
               suffix="(Lower is better)"
@@ -157,10 +157,10 @@ const AboutPage = () => {
           <Col xs={24} sm={8}>
             <Statistic
               title="R² Score"
-              value={0.796}
+              value={0.95}
               precision={3}
               valueStyle={{ color: '#722ed1' }}
-              suffix="(79.6% variance explained)"
+              suffix="(72h holdout)"
             />
           </Col>
         </Row>
@@ -187,7 +187,7 @@ const AboutPage = () => {
               <li><Text strong>Scikit-learn</Text> - Machine learning library</li>
               <li><Text strong>Pandas</Text> - Data manipulation</li>
               <li><Text strong>OpenWeatherMap API</Text> - Air pollution data source</li>
-              <li><Text strong>Flask/FastAPI</Text> - REST API framework</li>
+              <li><Text strong>Flask</Text> - REST API framework</li>
             </ul>
           </Col>
         </Row>
@@ -234,11 +234,9 @@ const AboutPage = () => {
       <Card style={{ marginBottom: '24px' }}>
         <Title level={3}>Getting Started</Title>
         <ol>
-          <li><Text strong>Set your OpenWeatherMap API key</Text> in the configuration</li>
+          <li><Text strong>Set your OpenWeatherMap API key</Text> in the root <Text code>.env</Text> file</li>
           <li><Text strong>Select a location</Text> on the map or search for a city</li>
-          <li><Text strong>Update data</Text> to collect latest air pollution data</li>
-          <li><Text strong>Train models</Text> to create prediction models</li>
-          <li><Text strong>Generate predictions</Text> to get 5-day AQI forecasts</li>
+          <li><Text strong>Review current AQI</Text> and the forecast horizon cards</li>
         </ol>
       </Card>
 
@@ -246,7 +244,7 @@ const AboutPage = () => {
 
       <div style={{ textAlign: 'center', color: '#666' }}>
         <Paragraph>
-          <Text strong>Built with ❤️ for better air quality monitoring and prediction</Text>
+          <Text strong>Built for better air quality monitoring and prediction</Text>
         </Paragraph>
         <Paragraph>
           This project demonstrates a complete data science workflow from data collection to production deployment.
@@ -256,4 +254,4 @@ const AboutPage = () => {
   );
 };
 
-export default AboutPage; 
+export default AboutPage;
